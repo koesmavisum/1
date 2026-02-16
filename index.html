@@ -152,6 +152,13 @@
                      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                         <div class="space-y-6">
                             <h3 class="text-lg font-black text-white bg-blue-900 px-3 py-1 inline-block uppercase tracking-wide">Data Pasien</h3>
+                            
+                            <!-- NEW FIELD: NOMOR REGISTRASI READ ONLY -->
+                            <div>
+                                <label class="block text-sm font-bold mb-2 text-black uppercase">Nomor Registrasi (Auto)</label>
+                                <input type="text" id="reg-number-preview" class="w-full bg-slate-200 text-slate-600 border-2 border-slate-400 p-3 font-bold" value="Loading..." readonly>
+                            </div>
+
                             <div><label class="block text-sm font-bold mb-2 text-black uppercase">Nomor Rekam Medis (RM)</label><input type="text" name="nomorRm" required class="w-full hc-input p-3" placeholder="Contoh: 12-34-56"></div>
                             <div><label class="block text-sm font-bold mb-2 text-black uppercase">Nama Lengkap Pasien</label><input type="text" name="namaPasien" required class="w-full hc-input p-3"></div>
                             <div><label class="block text-sm font-bold mb-2 text-black uppercase">Tanggal Kunjungan</label><input type="date" name="tglKunjungan" required class="w-full hc-input p-3 cursor-pointer"></div>
@@ -559,11 +566,28 @@
             });
         }
 
+        // --- UTILS & PRE-FETCH LOGIC ---
         function nav(id) { 
             document.querySelectorAll('.page-view').forEach(e => e.classList.add('hidden')); 
             document.getElementById('view-'+id).classList.remove('hidden'); 
             saveState(); 
+            
+            // Auto fetch reg number when opening admin input
+            if(id === 'input-admin') {
+                fetchNextRegNumber();
+            }
         }
+
+        async function fetchNextRegNumber() {
+            document.getElementById('reg-number-preview').value = "Mengambil data...";
+            const res = await callAPI("get_next_reg_number", {});
+            if(res.status === 'success') {
+                document.getElementById('reg-number-preview').value = res.nextNumber;
+            } else {
+                document.getElementById('reg-number-preview').value = "Error";
+            }
+        }
+
         async function callAPI(a, d) {
             try { return await (await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: a, ...d }) })).json(); }
             catch (e) { return { status: "error", message: "Koneksi Gagal" }; }
@@ -578,7 +602,11 @@
             const file = document.getElementById('file-resume').files[0];
             const send = async (p) => {
                 const res = await callAPI('save_visum_admin', { payload: p, userEmail: currentUser.email });
-                if(res.status==='success') { showToast("TERSIMPAN","success"); e.target.reset(); } else showToast(res.message,"error");
+                if(res.status==='success') { 
+                    showToast("TERSIMPAN","success"); 
+                    e.target.reset(); 
+                    fetchNextRegNumber(); // Refresh number after save
+                } else showToast(res.message,"error");
                 btn.disabled=false; btn.innerHTML="SIMPAN DATA";
             };
             if(file) { const r = new FileReader(); r.onload=()=>{ payload.fileResumeData=r.result.split(',')[1]; payload.fileResumeName=file.name; send(payload); }; r.readAsDataURL(file); } else send(payload);
