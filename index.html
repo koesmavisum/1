@@ -665,11 +665,54 @@
             };
             if(file) { const r = new FileReader(); r.onload=()=>{ payload.fileResumeData=r.result.split(',')[1]; payload.fileResumeName=file.name; send(payload); }; r.readAsDataURL(file); } else send(payload);
         }
+        
+        // --- SEARCH: DELETE FEATURE FOR SUPER ADMIN ---
         async function doSearch() {
             const k = document.getElementById('search-input').value;
             const res = await callAPI('search_patient', {keyword: k, userEmail: currentUser.email});
             const div = document.getElementById('search-results');
-            div.innerHTML = (res.data||[]).map(d => `<div class="bg-white p-4 border-4 border-black mb-2"><h4 class="font-black">${d.nama}</h4><p>RM: ${d.rm} - ${d.dokter}</p></div>`).join('') || '<p class="text-center font-bold">TIDAK ADA DATA</p>';
+            
+            if(!res.data || res.data.length === 0) {
+                div.innerHTML = `<div class="text-center p-8 text-black font-bold bg-slate-100 border-2 border-black uppercase">Data tidak ditemukan.</div>`;
+                return;
+            }
+
+            div.innerHTML = res.data.map(d => `
+                <div class="bg-white p-5 border-4 border-black flex flex-col md:flex-row justify-between items-center hover:bg-yellow-50 transition gap-4">
+                    <div>
+                        <div class="font-black text-xl text-black uppercase">${d.nama}</div>
+                        <div class="text-base text-black font-bold bg-slate-200 px-2 inline-block mt-1 border border-black">RM: ${d.rm}</div>
+                        <div class="text-sm text-slate-800 mt-1 font-bold"><i class="far fa-calendar-alt"></i> ${new Date(d.tgl).toLocaleDateString()} &bull; ${d.dokter}</div>
+                    </div>
+                    <div class="text-right w-full md:w-auto">
+                        <div class="mb-2">
+                            ${d.resume ? 
+                                `<span class="text-white bg-green-800 px-4 py-2 text-sm font-black border-2 border-black uppercase block md:inline-block text-center"><i class="fas fa-check"></i> SELESAI</span>` : 
+                                `<span class="text-black bg-yellow-400 px-4 py-2 text-sm font-black border-2 border-black uppercase block md:inline-block text-center"><i class="fas fa-clock"></i> PENDING</span>`
+                            }
+                        </div>
+                        ${(currentUser.role === 'Super Admin') ? 
+                            `<button onclick="deleteVisum('${d.id}', '${d.nama}')" class="text-xs bg-red-600 text-white px-4 py-2 rounded-none border-2 border-black hover:bg-red-700 font-bold uppercase w-full shadow-[2px_2px_0px_#000] active:shadow-none active:translate-y-[2px] transition-all">
+                                <i class="fas fa-trash-alt"></i> HAPUS DATA
+                            </button>` : ''
+                        }
+                    </div>
+                </div>`).join('');
+        }
+
+        async function deleteVisum(visumId, patientName) {
+            if (!confirm(`PERINGATAN KERAS!\n\nAnda akan menghapus permanen data pasien:\n${patientName}\n\n- Data Database HILANG\n- Folder Drive HILANG\n- Foto HILANG\n\nTindakan ini TIDAK BISA DIBATALKAN. Lanjutkan?`)) {
+                return;
+            }
+
+            const res = await callAPI('delete_visum_data', { visumId: visumId, userEmail: currentUser.email });
+            
+            if (res.status === 'success') {
+                showToast("DATA DIHAPUS PERMANEN", "success");
+                doSearch(); // Refresh results
+            } else {
+                showToast("GAGAL: " + res.message, "error");
+            }
         }
         
         // --- USER MANAGEMENT (NEW UPDATE) ---
