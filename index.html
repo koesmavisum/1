@@ -24,6 +24,9 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .page-view { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .tab-active { background-color: #1e3a8a; color: white; border-color: black; }
+        .tab-inactive { background-color: #f1f5f9; color: #64748b; border-color: #cbd5e1; }
     </style>
 </head>
 <body class="text-slate-900">
@@ -118,13 +121,23 @@
                     <div class="hc-card p-6 relative overflow-hidden"><i class="fas fa-clock text-8xl text-black absolute right-0 top-0 opacity-10"></i><p class="text-black text-sm font-black uppercase border-b-2 border-black inline-block mb-2">Pending</p><h3 class="text-5xl font-black text-red-900 mt-2" id="stat-pending">0</h3></div>
                 </div>
 
-                <!-- DOKTER SPECIFIC: QUEUE LIST -->
-                <div id="doctor-queue-container" class="hidden mb-8">
-                    <div class="hc-card p-6 border-l-8 border-blue-900">
-                        <h3 class="text-2xl font-black text-blue-900 uppercase mb-4 flex items-center gap-2"><i class="fas fa-user-md"></i> DAFTAR ANTRIAN PASIEN SAYA</h3>
-                        <div id="doctor-queue-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Cards Antrian akan muncul disini -->
-                        </div>
+                <!-- DOKTER SPECIFIC: QUEUE & HISTORY LIST -->
+                <div id="doctor-panel" class="hidden mb-8">
+                    <div class="flex gap-4 mb-4">
+                        <button onclick="switchDocTab('queue')" id="tab-queue" class="flex-1 py-3 font-black uppercase border-2 text-center tab-active">Antrian Pasien</button>
+                        <button onclick="switchDocTab('history')" id="tab-history" class="flex-1 py-3 font-black uppercase border-2 text-center tab-inactive">Riwayat Pemeriksaan</button>
+                    </div>
+
+                    <!-- ANTRIAN -->
+                    <div id="panel-queue" class="hc-card p-6 border-l-8 border-blue-900">
+                        <h3 class="text-2xl font-black text-blue-900 uppercase mb-4 flex items-center gap-2"><i class="fas fa-user-md"></i> DAFTAR ANTRIAN SAYA</h3>
+                        <div id="doctor-queue-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                    </div>
+
+                    <!-- RIWAYAT -->
+                    <div id="panel-history" class="hidden hc-card p-6 border-l-8 border-green-900">
+                        <h3 class="text-2xl font-black text-green-900 uppercase mb-4 flex items-center gap-2"><i class="fas fa-history"></i> PASIEN SELESAI (EDIT MODE)</h3>
+                        <div id="doctor-history-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                     </div>
                 </div>
             </section>
@@ -162,7 +175,7 @@
                 </form>
             </section>
 
-            <!-- VIEW: INPUT MEDIS (DOKTER - AUTOFILL FROM QUEUE) -->
+            <!-- VIEW: PEMERIKSAAN MEDIS (EDIT/INPUT) -->
             <section id="view-input-medis" class="page-view hidden">
                 <div class="flex items-center gap-4 mb-6 border-b-4 border-black pb-4">
                     <button onclick="nav('dashboard')" class="bg-slate-200 p-2 border-2 border-black hover:bg-slate-300"><i class="fas fa-arrow-left"></i></button>
@@ -177,18 +190,22 @@
                     <input type="hidden" id="medis-visum-id">
                 </div>
 
+                <!-- SECTION FOTO LAMA (UTK EDIT/HAPUS) -->
+                <div id="existing-photos-container" class="hidden hc-card p-6 mb-8 border-l-8 border-orange-500">
+                    <h3 class="text-xl font-black text-black uppercase mb-4 flex items-center gap-2"><i class="fas fa-images"></i> Foto Tersimpan</h3>
+                    <div id="existing-photos-list" class="space-y-4"></div>
+                </div>
+
+                <!-- SECTION FOTO BARU -->
                 <div class="hc-card p-8">
+                    <h3 class="text-xl font-black text-black uppercase mb-4 flex items-center gap-2"><i class="fas fa-plus-circle"></i> Tambah Foto Baru</h3>
                     <div class="border-4 border-dashed border-black bg-slate-50 p-8 text-center mb-6 hover:bg-blue-50 transition cursor-pointer" onclick="document.getElementById('file-foto-multi').click()">
                         <i class="fas fa-camera text-6xl text-black mb-4"></i>
-                        <h3 class="font-black text-2xl text-black uppercase">Tambah Foto (Bisa Banyak)</h3>
+                        <h3 class="font-black text-2xl text-black uppercase">Pilih Foto</h3>
                         <input type="file" id="file-foto-multi" multiple accept="image/*" class="hidden" onchange="handleFileSelect(event)">
                     </div>
-                    
-                    <div id="photo-input-container" class="space-y-4 mb-8">
-                        <!-- Preview Foto & Input Caption akan muncul disini -->
-                    </div>
-                    
-                    <button onclick="submitMedicalData()" class="w-full bg-green-800 text-white py-4 font-black text-xl hover:bg-green-700 border-4 border-black shadow-[4px_4px_0px_#000] active:shadow-none active:translate-y-[4px] transition-all flex items-center justify-center gap-3" id="btn-submit-medis"><i class="fas fa-check-double"></i> SELESAI & SIMPAN</button>
+                    <div id="photo-input-container" class="space-y-4 mb-8"></div>
+                    <button onclick="submitMedicalData()" class="w-full bg-green-800 text-white py-4 font-black text-xl hover:bg-green-700 border-4 border-black shadow-[4px_4px_0px_#000] active:shadow-none active:translate-y-[4px] transition-all flex items-center justify-center gap-3" id="btn-submit-medis"><i class="fas fa-check-double"></i> SIMPAN PERUBAHAN</button>
                 </div>
             </section>
 
@@ -213,19 +230,19 @@
     <!-- LOGIC SCRIPT -->
     <script>
         let currentUser = null;
-        let selectedPhotos = []; // { file, caption, previewUrl }
-        let currentVisumData = null; // { id, nama, rm }
+        let selectedPhotos = []; 
+        let currentVisumData = null;
 
-        // --- STATE MANAGEMENT (REFRESH SUPPORT) ---
+        // --- STATE MANAGEMENT ---
         window.onload = function() {
             const savedState = localStorage.getItem('visumAppState');
             if (savedState) {
                 const state = JSON.parse(savedState);
                 if (state.currentUser) {
-                    onLoginSuccess(state.currentUser, false); // false = jangan save ulang, avoid loop
+                    onLoginSuccess(state.currentUser, false);
                     if(state.currentView) nav(state.currentView);
                     if(state.currentVisumData && state.currentView === 'input-medis') {
-                        prepareMedicalInput(state.currentVisumData);
+                        loadVisumDetails(state.currentVisumData.visumId); // Reload fresh data
                     }
                 }
             }
@@ -280,18 +297,16 @@
             document.getElementById('user-role').innerText = user.role;
             document.getElementById('user-initial').innerText = user.nama.charAt(0);
 
-            // Nav Permissions
             const nav = (id) => document.getElementById(id).classList.remove('hidden');
             nav('nav-search');
             if (user.role === 'Perawat' || user.role === 'Admin' || user.role === 'Super Admin') nav('nav-perawat');
             if (user.role === 'Admin' || user.role === 'Super Admin') { nav('nav-users'); nav('nav-admin-divider'); }
             
-            // Load Initial Data
             loadDashboard();
             if(save) saveState();
         }
 
-        // --- DASHBOARD & DOCTOR QUEUE ---
+        // --- DASHBOARD ---
         async function loadDashboard() {
             const res = await callAPI("get_stats", { userEmail: currentUser.email });
             if(res.status === 'success') {
@@ -299,10 +314,27 @@
                 document.getElementById('stat-month').innerText = res.stats.month;
             }
 
-            // Jika Dokter, load Antrian
-            if(currentUser.role === 'Dokter') {
-                document.getElementById('doctor-queue-container').classList.remove('hidden');
+            if(currentUser.role === 'Dokter' || currentUser.role === 'Admin' || currentUser.role === 'Super Admin') {
+                document.getElementById('doctor-panel').classList.remove('hidden');
                 loadDoctorQueue();
+                loadDoctorHistory();
+            }
+        }
+
+        function switchDocTab(tab) {
+            const queuePanel = document.getElementById('panel-queue');
+            const historyPanel = document.getElementById('panel-history');
+            const btnQueue = document.getElementById('tab-queue');
+            const btnHistory = document.getElementById('tab-history');
+
+            if(tab === 'queue') {
+                queuePanel.classList.remove('hidden'); historyPanel.classList.add('hidden');
+                btnQueue.className = "flex-1 py-3 font-black uppercase border-2 text-center tab-active";
+                btnHistory.className = "flex-1 py-3 font-black uppercase border-2 text-center tab-inactive";
+            } else {
+                queuePanel.classList.add('hidden'); historyPanel.classList.remove('hidden');
+                btnQueue.className = "flex-1 py-3 font-black uppercase border-2 text-center tab-inactive";
+                btnHistory.className = "flex-1 py-3 font-black uppercase border-2 text-center tab-active";
             }
         }
 
@@ -313,60 +345,116 @@
             
             if(res.status === 'success') {
                 listDiv.innerHTML = '';
-                if(res.queue.length === 0) {
-                    listDiv.innerHTML = '<p class="text-slate-500 italic">Tidak ada pasien dalam antrian.</p>';
-                } else {
+                if(res.queue.length === 0) listDiv.innerHTML = '<p class="text-slate-500 italic">Tidak ada antrian.</p>';
+                else {
                     res.queue.forEach(q => {
-                        // Card Antrian
                         const card = document.createElement('div');
                         card.className = "bg-white border-4 border-black p-4 hover:shadow-lg transition flex justify-between items-center";
                         card.innerHTML = `
-                            <div>
-                                <h4 class="font-black text-xl text-black uppercase">${q.nama}</h4>
-                                <p class="text-sm font-bold text-slate-600 bg-slate-200 px-2 inline-block">RM: ${q.rm}</p>
-                                <p class="text-xs text-slate-500 mt-1"><i class="far fa-clock"></i> ${new Date(q.tgl).toLocaleDateString()}</p>
-                            </div>
-                            <button onclick='startExamination(${JSON.stringify(q)})' class="bg-blue-900 text-white px-4 py-2 font-black border-2 border-black hover:bg-blue-800 shadow-[2px_2px_0px_#000]">
-                                PERIKSA <i class="fas fa-arrow-right"></i>
-                            </button>
-                        `;
+                            <div><h4 class="font-black text-xl text-black uppercase">${q.nama}</h4><p class="text-sm font-bold text-slate-600 bg-slate-200 px-2 inline-block">RM: ${q.rm}</p></div>
+                            <button onclick='openMedicalEditor("${q.visumId}")' class="bg-blue-900 text-white px-4 py-2 font-black border-2 border-black hover:bg-blue-800">PERIKSA <i class="fas fa-arrow-right"></i></button>`;
                         listDiv.appendChild(card);
                     });
                 }
             }
         }
 
-        function startExamination(visumData) {
-            // Data visumData: { visumId, nama, rm, ... }
-            prepareMedicalInput(visumData);
+        async function loadDoctorHistory() {
+            const listDiv = document.getElementById('doctor-history-list');
+            listDiv.innerHTML = '<div class="loader"></div>';
+            const res = await callAPI("get_doctor_history", { userEmail: currentUser.email });
+            
+            if(res.status === 'success') {
+                listDiv.innerHTML = '';
+                if(res.history.length === 0) listDiv.innerHTML = '<p class="text-slate-500 italic">Belum ada riwayat.</p>';
+                else {
+                    res.history.forEach(q => {
+                        const card = document.createElement('div');
+                        card.className = "bg-white border-4 border-black p-4 hover:shadow-lg transition flex justify-between items-center bg-green-50";
+                        card.innerHTML = `
+                            <div><h4 class="font-black text-xl text-black uppercase">${q.nama}</h4><p class="text-sm font-bold text-slate-600 bg-slate-200 px-2 inline-block">RM: ${q.rm}</p></div>
+                            <button onclick='openMedicalEditor("${q.visumId}")' class="bg-green-800 text-white px-4 py-2 font-black border-2 border-black hover:bg-green-700">EDIT <i class="fas fa-edit"></i></button>`;
+                        listDiv.appendChild(card);
+                    });
+                }
+            }
         }
 
-        function prepareMedicalInput(data) {
-            currentVisumData = data;
-            document.getElementById('medis-nama-pasien').innerText = data.nama;
-            document.getElementById('medis-rm').innerText = data.rm;
-            document.getElementById('medis-visum-id').value = data.visumId;
-            
-            // Reset Photos
-            selectedPhotos = [];
-            renderPhotoInputs();
-            
+        // --- MEDICAL EDITOR ---
+        async function openMedicalEditor(visumId) {
             nav('input-medis');
+            await loadVisumDetails(visumId);
         }
 
-        // --- MEDICAL INPUT (MULTI PHOTO + CAPTION) ---
+        async function loadVisumDetails(visumId) {
+            document.getElementById('medis-nama-pasien').innerText = "Loading...";
+            
+            const res = await callAPI("get_visum_details", { visumId: visumId });
+            if(res.status === 'success') {
+                const data = res.data;
+                currentVisumData = data;
+                saveState();
+
+                document.getElementById('medis-nama-pasien').innerText = data.nama;
+                document.getElementById('medis-rm').innerText = data.rm;
+                document.getElementById('medis-visum-id').value = data.visumId;
+                
+                // Existing Photos
+                const existingDiv = document.getElementById('existing-photos-list');
+                const container = document.getElementById('existing-photos-container');
+                
+                if(res.photos.length > 0) {
+                    container.classList.remove('hidden');
+                    existingDiv.innerHTML = '';
+                    res.photos.forEach(photo => {
+                        const el = document.createElement('div');
+                        el.className = "bg-white border-2 border-slate-300 p-4 flex flex-col md:flex-row gap-4 items-start";
+                        el.innerHTML = `
+                            <div class="w-full md:w-1/3 aspect-video bg-black overflow-hidden border-2 border-black"><img src="${photo.url}" class="w-full h-full object-cover"></div>
+                            <div class="w-full md:w-2/3">
+                                <label class="block text-xs font-bold uppercase mb-1">Keterangan (Tersimpan)</label>
+                                <textarea id="caption-${photo.photoId}" class="w-full hc-input p-2 h-20 mb-2">${photo.caption}</textarea>
+                                <div class="flex gap-2">
+                                    <button onclick="updateCaption('${photo.photoId}')" class="bg-blue-600 text-white px-3 py-1 text-xs font-bold border border-black hover:bg-blue-700">UPDATE TEKS</button>
+                                    <button onclick="deletePhoto('${photo.photoId}', '${photo.fileId}')" class="bg-red-600 text-white px-3 py-1 text-xs font-bold border border-black hover:bg-red-700">HAPUS FOTO</button>
+                                </div>
+                            </div>`;
+                        existingDiv.appendChild(el);
+                    });
+                } else {
+                    container.classList.add('hidden');
+                }
+
+                // Reset New Photos
+                selectedPhotos = [];
+                renderPhotoInputs();
+            } else { showToast("Gagal load data", "error"); nav('dashboard'); }
+        }
+
+        async function updateCaption(photoId) {
+            const newCap = document.getElementById('caption-'+photoId).value;
+            const res = await callAPI("update_caption", { photoId: photoId, caption: newCap, userEmail: currentUser.email });
+            if(res.status === 'success') showToast("Keterangan diupdate", "success");
+            else showToast("Gagal update", "error");
+        }
+
+        async function deletePhoto(photoId, fileId) {
+            if(!confirm("Yakin hapus foto ini secara permanen?")) return;
+            const res = await callAPI("delete_photo", { photoId: photoId, fileId: fileId, userEmail: currentUser.email });
+            if(res.status === 'success') {
+                showToast("Foto dihapus", "success");
+                loadVisumDetails(currentVisumData.visumId); // Reload
+            } else showToast("Gagal hapus", "error");
+        }
+
+        // --- NEW PHOTO UPLOAD ---
         function handleFileSelect(event) {
             const files = Array.from(event.target.files);
             if(files.length === 0) return;
-
             files.forEach(file => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    selectedPhotos.push({
-                        file: file,
-                        previewUrl: e.target.result,
-                        caption: ""
-                    });
+                    selectedPhotos.push({ file: file, previewUrl: e.target.result, caption: "" });
                     renderPhotoInputs();
                 };
                 reader.readAsDataURL(file);
@@ -376,7 +464,6 @@
         function renderPhotoInputs() {
             const container = document.getElementById('photo-input-container');
             container.innerHTML = '';
-            
             selectedPhotos.forEach((item, index) => {
                 const div = document.createElement('div');
                 div.className = "bg-white border-2 border-slate-300 p-4 flex flex-col md:flex-row gap-4 items-start";
@@ -386,55 +473,42 @@
                         <button onclick="removePhoto(${index})" class="absolute top-2 right-2 bg-red-600 text-white w-8 h-8 font-bold border-2 border-white hover:bg-red-700">X</button>
                     </div>
                     <div class="w-full md:w-2/3">
-                        <label class="block text-xs font-bold uppercase mb-1">Keterangan Foto / Temuan Luka</label>
-                        <textarea oninput="updateCaption(${index}, this.value)" class="w-full hc-input p-2 h-24" placeholder="Contoh: Luka lecet pada lengan kanan, ukuran 2x3 cm...">${item.caption}</textarea>
-                    </div>
-                `;
+                        <label class="block text-xs font-bold uppercase mb-1">Keterangan Foto Baru</label>
+                        <textarea oninput="updateNewCaption(${index}, this.value)" class="w-full hc-input p-2 h-24" placeholder="Ketik keterangan...">${item.caption}</textarea>
+                    </div>`;
                 container.appendChild(div);
             });
         }
 
-        function removePhoto(index) {
-            selectedPhotos.splice(index, 1);
-            renderPhotoInputs();
-        }
-
-        function updateCaption(index, val) {
-            selectedPhotos[index].caption = val;
-        }
+        function removePhoto(index) { selectedPhotos.splice(index, 1); renderPhotoInputs(); }
+        function updateNewCaption(index, val) { selectedPhotos[index].caption = val; }
 
         async function submitMedicalData() {
-            if(selectedPhotos.length === 0) return showToast("Upload minimal 1 foto.", "error");
-            
-            const btn = document.getElementById('btn-submit-medis');
-            btn.disabled = true; btn.innerHTML = "MENGOMPRES & UPLOAD...";
-
-            // Compress Photos Logic
-            const processedPhotos = await Promise.all(selectedPhotos.map(async (p) => {
-                const compressedData = await compressImage(p.file);
-                return {
-                    data: compressedData, // base64 string
-                    mimeType: 'image/jpeg',
-                    caption: p.caption
-                };
-            }));
-
-            const payload = {
-                visumId: currentVisumData.visumId,
-                nomorRm: currentVisumData.rm,
-                photos: processedPhotos
-            };
-
-            const res = await callAPI("save_medical_data_v2", { payload: payload, userEmail: currentUser.email });
-            
-            if(res.status === 'success') {
-                showToast("Pemeriksaan Selesai!", "success");
-                currentVisumData = null; // Clear active patient
-                nav('dashboard'); // Back to dashboard to check next patient
-            } else {
-                showToast("Gagal simpan: " + res.message, "error");
+            if(selectedPhotos.length === 0 && document.getElementById('existing-photos-container').classList.contains('hidden')) {
+                return showToast("Tidak ada data untuk disimpan.", "error");
             }
-            btn.disabled = false; btn.innerHTML = "SELESAI & SIMPAN";
+            
+            // If only updating existing photos, users use the direct buttons.
+            // This button specifically handles NEW photos.
+            if(selectedPhotos.length > 0) {
+                const btn = document.getElementById('btn-submit-medis'); btn.disabled = true; btn.innerHTML = "MENGOMPRES & UPLOAD...";
+                
+                const processedPhotos = await Promise.all(selectedPhotos.map(async (p) => {
+                    const compressedData = await compressImage(p.file);
+                    return { data: compressedData, mimeType: 'image/jpeg', caption: p.caption };
+                }));
+
+                const payload = { visumId: currentVisumData.visumId, nomorRm: currentVisumData.rm, photos: processedPhotos };
+                const res = await callAPI("save_medical_data_v2", { payload: payload, userEmail: currentUser.email });
+                
+                if(res.status === 'success') {
+                    showToast("Tersimpan!", "success");
+                    loadVisumDetails(currentVisumData.visumId); // Reload to show as 'existing'
+                } else showToast("Gagal: " + res.message, "error");
+                btn.disabled = false; btn.innerHTML = "SIMPAN PERUBAHAN";
+            } else {
+                showToast("Perubahan foto lama sudah tersimpan langsung.", "info");
+            }
         }
 
         function compressImage(file) {
@@ -446,8 +520,7 @@
                     img.src = ev.target.result;
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
-                        const maxWidth = 1024; 
-                        const scale = maxWidth / img.width;
+                        const maxWidth = 1024; const scale = maxWidth / img.width;
                         const w = (img.width > maxWidth) ? maxWidth : img.width;
                         const h = (img.width > maxWidth) ? img.height * scale : img.height;
                         canvas.width = w; canvas.height = h;
@@ -459,11 +532,10 @@
             });
         }
 
-        // --- UTILS ---
         function nav(id) { 
             document.querySelectorAll('.page-view').forEach(e => e.classList.add('hidden')); 
             document.getElementById('view-'+id).classList.remove('hidden'); 
-            saveState(); // Save state on nav change
+            saveState(); 
         }
         async function callAPI(a, d) {
             try { return await (await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: a, ...d }) })).json(); }
@@ -473,22 +545,16 @@
         function populateDoctors(l) { document.getElementById('dokter-select').innerHTML = "<option>Pilih Dokter...</option>" + (l||[]).map(d=>`<option>${d}</option>`).join(''); }
         function logout() { localStorage.removeItem('visumAppState'); location.reload(); }
         
-        // --- ADMIN INPUT & SEARCH ---
         async function handleFormAdmin(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btn-submit-admin'); btn.disabled=true; btn.innerHTML="MEMPROSES...";
+            e.preventDefault(); const btn = document.getElementById('btn-submit-admin'); btn.disabled=true; btn.innerHTML="MEMPROSES...";
             const formData = new FormData(e.target); const payload = Object.fromEntries(formData.entries());
             const file = document.getElementById('file-resume').files[0];
-            
             const send = async (p) => {
                 const res = await callAPI('save_visum_admin', { payload: p, userEmail: currentUser.email });
-                if(res.status==='success') { showToast("TERSIMPAN","success"); e.target.reset(); }
-                else showToast(res.message,"error");
+                if(res.status==='success') { showToast("TERSIMPAN","success"); e.target.reset(); } else showToast(res.message,"error");
                 btn.disabled=false; btn.innerHTML="SIMPAN DATA";
             };
-            if(file) {
-                const r = new FileReader(); r.onload=()=>{ payload.fileResumeData=r.result.split(',')[1]; payload.fileResumeName=file.name; send(payload); }; r.readAsDataURL(file);
-            } else send(payload);
+            if(file) { const r = new FileReader(); r.onload=()=>{ payload.fileResumeData=r.result.split(',')[1]; payload.fileResumeName=file.name; send(payload); }; r.readAsDataURL(file); } else send(payload);
         }
         async function doSearch() {
             const k = document.getElementById('search-input').value;
