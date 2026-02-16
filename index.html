@@ -27,6 +27,11 @@
         
         .tab-active { background-color: #1e3a8a; color: white; border-color: black; }
         .tab-inactive { background-color: #f1f5f9; color: #64748b; border-color: #cbd5e1; }
+        
+        /* Sorting Icons */
+        .sort-icon::after { content: '\f0dc'; font-family: 'Font Awesome 6 Free'; font-weight: 900; margin-left: 5px; opacity: 0.3; }
+        .sort-asc::after { content: '\f0de'; opacity: 1; }
+        .sort-desc::after { content: '\f0dd'; opacity: 1; }
     </style>
 </head>
 <body class="text-slate-900">
@@ -91,7 +96,9 @@
                 <p class="px-4 text-xs uppercase text-slate-400 font-bold tracking-widest border-b border-slate-700 pb-1 mb-2">Menu Utama</p>
                 <button onclick="nav('dashboard')" class="nav-item w-full text-left px-4 py-4 hover:bg-slate-700 hover:text-yellow-300 font-bold text-lg border-l-4 border-transparent hover:border-yellow-400 active-nav"><i class="fas fa-chart-pie w-6"></i> Dashboard</button>
                 <button id="nav-perawat" onclick="nav('input-admin')" class="hidden nav-item w-full text-left px-4 py-4 hover:bg-slate-700 hover:text-yellow-300 font-bold text-lg border-l-4 border-transparent hover:border-yellow-400"><i class="fas fa-file-medical w-6"></i> Input SPVR</button>
-                <button id="nav-search" onclick="nav('search')" class="hidden nav-item w-full text-left px-4 py-4 hover:bg-slate-700 hover:text-yellow-300 font-bold text-lg border-l-4 border-transparent hover:border-yellow-400"><i class="fas fa-search w-6"></i> Pencarian</button>
+                <button id="nav-search" onclick="nav('search')" class="hidden nav-item w-full text-left px-4 py-4 hover:bg-slate-700 hover:text-yellow-300 font-bold text-lg border-l-4 border-transparent hover:border-yellow-400">
+                    <i class="fas fa-search w-6"></i> <span id="label-search">Pencarian</span>
+                </button>
                 
                 <div id="nav-admin-divider" class="hidden my-4 border-t-2 border-slate-700"></div>
                 <button id="nav-users" onclick="loadUsers()" class="hidden nav-item w-full text-left px-4 py-4 hover:bg-slate-700 hover:text-yellow-300 font-bold text-lg border-l-4 border-transparent hover:border-yellow-400"><i class="fas fa-users-cog w-6"></i> User Manager</button>
@@ -152,13 +159,7 @@
                      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                         <div class="space-y-6">
                             <h3 class="text-lg font-black text-white bg-blue-900 px-3 py-1 inline-block uppercase tracking-wide">Data Pasien</h3>
-                            
-                            <!-- NEW FIELD: NOMOR REGISTRASI READ ONLY -->
-                            <div>
-                                <label class="block text-sm font-bold mb-2 text-black uppercase">Nomor Registrasi (Auto)</label>
-                                <input type="text" id="reg-number-preview" class="w-full bg-slate-200 text-slate-600 border-2 border-slate-400 p-3 font-bold" value="Loading..." readonly>
-                            </div>
-
+                            <div><label class="block text-sm font-bold mb-2 text-black uppercase">Nomor Registrasi (Auto)</label><input type="text" id="reg-number-preview" class="w-full bg-slate-200 text-slate-600 border-2 border-slate-400 p-3 font-bold" value="Loading..." readonly></div>
                             <div><label class="block text-sm font-bold mb-2 text-black uppercase">Nomor Rekam Medis (RM)</label><input type="text" name="nomorRm" required class="w-full hc-input p-3" placeholder="Contoh: 12-34-56"></div>
                             <div><label class="block text-sm font-bold mb-2 text-black uppercase">Nama Lengkap Pasien</label><input type="text" name="namaPasien" required class="w-full hc-input p-3"></div>
                             <div><label class="block text-sm font-bold mb-2 text-black uppercase">Tanggal Kunjungan</label><input type="date" name="tglKunjungan" required class="w-full hc-input p-3 cursor-pointer"></div>
@@ -197,14 +198,12 @@
                     <input type="hidden" id="medis-visum-id">
                 </div>
 
-                <!-- SECTION FOTO LAMA (UTK EDIT/HAPUS) -->
                 <div id="existing-photos-container" class="hidden hc-card p-6 mb-8 border-l-8 border-orange-500">
                     <h3 class="text-xl font-black text-black uppercase mb-4 flex items-center gap-2"><i class="fas fa-images"></i> Foto Tersimpan</h3>
                     <div id="existing-photos-loader" class="hidden text-center py-4 font-bold animate-pulse text-slate-600">SEDANG MEMUAT FOTO...</div>
                     <div id="existing-photos-list" class="space-y-4"></div>
                 </div>
 
-                <!-- SECTION FOTO BARU -->
                 <div class="hc-card p-8">
                     <h3 class="text-xl font-black text-black uppercase mb-4 flex items-center gap-2"><i class="fas fa-plus-circle"></i> Tambah Foto Baru</h3>
                     <div class="border-4 border-dashed border-black bg-slate-50 p-8 text-center mb-6 hover:bg-blue-50 transition cursor-pointer" onclick="document.getElementById('file-foto-multi').click()">
@@ -217,13 +216,35 @@
                 </div>
             </section>
 
-            <!-- VIEW: SEARCH -->
+            <!-- VIEW: SEARCH / DATA PASIEN -->
             <section id="view-search" class="page-view hidden">
-                <h2 class="text-3xl font-black text-black uppercase mb-6 border-b-4 border-black pb-4">Pencarian Data</h2>
-                <div class="relative mb-8">
-                    <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-black text-xl"></i>
-                    <input type="text" id="search-input" placeholder="KETIK NAMA PASIEN / RM / SPVR..." class="w-full pl-12 pr-4 py-4 rounded-none shadow-none border-4 border-black bg-white focus:bg-yellow-50 text-xl font-bold uppercase placeholder-slate-500 outline-none" onkeyup="if(event.key === 'Enter') doSearch()">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 border-b-4 border-black pb-4 gap-4">
+                    <h2 class="text-3xl font-black text-black uppercase" id="title-search-view">Pencarian Data</h2>
+                    <div class="w-full md:w-auto relative">
+                        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-black"></i>
+                        <input type="text" id="search-input" placeholder="CARI PASIEN..." class="w-full md:w-80 pl-10 pr-4 py-2 border-2 border-black bg-white focus:bg-yellow-50 font-bold uppercase outline-none" onkeyup="if(event.key === 'Enter') doSearch()">
+                    </div>
                 </div>
+                
+                <!-- TABLE VIEW FOR ADMIN -->
+                <div id="admin-table-container" class="hidden overflow-x-auto">
+                    <table class="w-full text-sm text-left border-collapse border-2 border-black">
+                        <thead class="bg-slate-900 text-white uppercase font-bold">
+                            <tr>
+                                <th class="px-4 py-3 border border-black cursor-pointer hover:bg-slate-700" onclick="sortPatients('noReg')">No Reg <span id="sort-noReg" class="sort-icon"></span></th>
+                                <th class="px-4 py-3 border border-black cursor-pointer hover:bg-slate-700" onclick="sortPatients('tgl')">Tanggal <span id="sort-tgl" class="sort-icon"></span></th>
+                                <th class="px-4 py-3 border border-black cursor-pointer hover:bg-slate-700" onclick="sortPatients('nama')">Nama Pasien <span id="sort-nama" class="sort-icon"></span></th>
+                                <th class="px-4 py-3 border border-black cursor-pointer hover:bg-slate-700" onclick="sortPatients('rm')">RM <span id="sort-rm" class="sort-icon"></span></th>
+                                <th class="px-4 py-3 border border-black">Dokter</th>
+                                <th class="px-4 py-3 border border-black">Status</th>
+                                <th class="px-4 py-3 border border-black text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patient-table-body" class="bg-white font-bold text-black"></tbody>
+                    </table>
+                </div>
+
+                <!-- CARD VIEW FOR USER -->
                 <div id="search-results" class="grid grid-cols-1 gap-4"></div>
             </section>
 
@@ -244,43 +265,16 @@
                     
                     <form onsubmit="handleUpdateUser(event)" class="space-y-4">
                         <input type="hidden" id="edit-email-target">
-                        
-                        <div>
-                            <label class="block text-xs font-bold uppercase mb-1">Email (ID)</label>
-                            <input type="text" id="edit-email-display" disabled class="w-full bg-slate-200 border-2 border-slate-400 p-2 font-mono font-bold text-slate-600">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold uppercase mb-1">Nama Lengkap & Gelar</label>
-                            <input type="text" id="edit-nama" required class="w-full hc-input p-2">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold uppercase mb-1">Nomor HP / WhatsApp</label>
-                            <input type="text" id="edit-hp" required class="w-full hc-input p-2">
-                        </div>
-
+                        <div><label class="block text-xs font-bold uppercase mb-1">Email (ID)</label><input type="text" id="edit-email-display" disabled class="w-full bg-slate-200 border-2 border-slate-400 p-2 font-mono font-bold text-slate-600"></div>
+                        <div><label class="block text-xs font-bold uppercase mb-1">Nama Lengkap & Gelar</label><input type="text" id="edit-nama" required class="w-full hc-input p-2"></div>
+                        <div><label class="block text-xs font-bold uppercase mb-1">Nomor HP / WhatsApp</label><input type="text" id="edit-hp" required class="w-full hc-input p-2"></div>
                         <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold uppercase mb-1">Role Akses</label>
-                                <select id="edit-role" class="w-full hc-input p-2">
-                                    <option value="Perawat">Perawat</option>
-                                    <option value="Dokter">Dokter</option>
-                                    <option value="Admin">Admin</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold uppercase mb-1">Status Akun</label>
-                                <select id="edit-status" class="w-full hc-input p-2">
-                                    <option value="Aktif">Aktif</option>
-                                    <option value="Nonaktif">Nonaktif</option>
-                                </select>
-                            </div>
+                            <div><label class="block text-xs font-bold uppercase mb-1">Role Akses</label><select id="edit-role" class="w-full hc-input p-2"><option value="Perawat">Perawat</option><option value="Dokter">Dokter</option><option value="Admin">Admin</option></select></div>
+                            <div><label class="block text-xs font-bold uppercase mb-1">Status Akun</label><select id="edit-status" class="w-full hc-input p-2"><option value="Aktif">Aktif</option><option value="Nonaktif">Nonaktif</option></select></div>
                         </div>
-
                         <div class="pt-4 flex gap-3">
                             <button type="button" onclick="closeEditModal()" class="flex-1 py-3 font-bold border-2 border-black hover:bg-slate-100 uppercase">Batal</button>
-                            <button type="submit" id="btn-save-user" class="flex-1 py-3 bg-green-800 text-white font-bold border-2 border-black hover:bg-green-700 uppercase shadow-[4px_4px_0px_#000]">Simpan Perubahan</button>
+                            <button type="submit" id="btn-save-user" class="flex-1 py-3 bg-green-800 text-white font-bold border-2 border-black hover:bg-green-700 uppercase shadow-[4px_4px_0px_#000]">Simpan</button>
                         </div>
                     </form>
                 </div>
@@ -294,8 +288,9 @@
         let currentUser = null;
         let selectedPhotos = []; 
         let currentVisumData = null;
+        let currentPatientData = []; // Store fetched data for client-side sorting
+        let sortState = { field: 'tgl', order: 'desc' }; // Default sort
 
-        // --- STATE MANAGEMENT ---
         window.onload = function() {
             const savedState = localStorage.getItem('visumAppState');
             if (savedState) {
@@ -304,7 +299,7 @@
                     onLoginSuccess(state.currentUser, false);
                     if(state.currentView) nav(state.currentView);
                     if(state.currentVisumData && state.currentView === 'input-medis') {
-                        loadVisumDetails(state.currentVisumData.visumId); // Reload fresh data
+                        loadVisumDetails(state.currentVisumData.visumId);
                     }
                 }
             }
@@ -319,13 +314,11 @@
             localStorage.setItem('visumAppState', JSON.stringify(state));
         }
 
-        // --- AUTH ---
         function handleCredentialResponse(response) {
             let email = JSON.parse(atob(response.credential.split('.')[1])).email;
             showToast("LOGIN...", "info");
             callAPI("login", { token: response.credential, email: email }).then(res => {
                 if (res.status === 'success') {
-                    // Note: Doctor list is also loaded via onLoginSuccess to ensure consistency
                     onLoginSuccess(res.user, true);
                 } else if (res.status === 'register_needed') {
                     document.getElementById('reg-email').value = res.email;
@@ -364,28 +357,36 @@
             if (user.role === 'Perawat' || user.role === 'Admin' || user.role === 'Super Admin') nav('nav-perawat');
             if (user.role === 'Admin' || user.role === 'Super Admin') { nav('nav-users'); nav('nav-admin-divider'); }
             
-            // LOAD DOCTORS LIST (FIX MISSING LIST ON REFRESH)
-            loadDoctors();
+            // ADMIN UI ADJUSTMENT
+            if (user.role === 'Admin' || user.role === 'Super Admin') {
+                document.getElementById('label-search').innerText = "Data Pasien";
+                document.getElementById('title-search-view').innerText = "Data Pasien & Arsip";
+                document.getElementById('admin-table-container').classList.remove('hidden');
+                document.getElementById('search-results').classList.add('hidden');
+                doSearch(); // Auto load data
+            } else {
+                document.getElementById('label-search').innerText = "Pencarian";
+                document.getElementById('title-search-view').innerText = "Pencarian Data";
+                document.getElementById('admin-table-container').classList.add('hidden');
+                document.getElementById('search-results').classList.remove('hidden');
+            }
 
+            loadDoctors();
             loadDashboard();
             if(save) saveState();
         }
 
         async function loadDoctors() {
             const res = await callAPI("get_doctor_list", {});
-            if(res.status === 'success') {
-                populateDoctors(res.dokters);
-            }
+            if(res.status === 'success') populateDoctors(res.dokters);
         }
 
-        // --- DASHBOARD ---
         async function loadDashboard() {
             const res = await callAPI("get_stats", { userEmail: currentUser.email });
             if(res.status === 'success') {
                 document.getElementById('stat-total').innerText = res.stats.total;
                 document.getElementById('stat-month').innerText = res.stats.month;
             }
-
             if(currentUser.role === 'Dokter' || currentUser.role === 'Admin' || currentUser.role === 'Super Admin') {
                 document.getElementById('doctor-panel').classList.remove('hidden');
                 loadDoctorQueue();
@@ -398,7 +399,6 @@
             const historyPanel = document.getElementById('panel-history');
             const btnQueue = document.getElementById('tab-queue');
             const btnHistory = document.getElementById('tab-history');
-
             if(tab === 'queue') {
                 queuePanel.classList.remove('hidden'); historyPanel.classList.add('hidden');
                 btnQueue.className = "flex-1 py-3 font-black uppercase border-2 text-center tab-active";
@@ -414,7 +414,6 @@
             const listDiv = document.getElementById('doctor-queue-list');
             listDiv.innerHTML = '<div class="loader"></div>';
             const res = await callAPI("get_doctor_queue", { userEmail: currentUser.email });
-            
             if(res.status === 'success') {
                 listDiv.innerHTML = '';
                 if(res.queue.length === 0) listDiv.innerHTML = '<p class="text-slate-500 italic">Tidak ada antrian.</p>';
@@ -422,9 +421,7 @@
                     res.queue.forEach(q => {
                         const card = document.createElement('div');
                         card.className = "bg-white border-4 border-black p-4 hover:shadow-lg transition flex justify-between items-center";
-                        card.innerHTML = `
-                            <div><h4 class="font-black text-xl text-black uppercase">${q.nama}</h4><p class="text-sm font-bold text-slate-600 bg-slate-200 px-2 inline-block">RM: ${q.rm}</p></div>
-                            <button onclick='openMedicalEditor("${q.visumId}")' class="bg-blue-900 text-white px-4 py-2 font-black border-2 border-black hover:bg-blue-800">PERIKSA <i class="fas fa-arrow-right"></i></button>`;
+                        card.innerHTML = `<div><h4 class="font-black text-xl text-black uppercase">${q.nama}</h4><p class="text-sm font-bold text-slate-600 bg-slate-200 px-2 inline-block">RM: ${q.rm}</p></div><button onclick='openMedicalEditor("${q.visumId}")' class="bg-blue-900 text-white px-4 py-2 font-black border-2 border-black hover:bg-blue-800">PERIKSA <i class="fas fa-arrow-right"></i></button>`;
                         listDiv.appendChild(card);
                     });
                 }
@@ -435,7 +432,6 @@
             const listDiv = document.getElementById('doctor-history-list');
             listDiv.innerHTML = '<div class="loader"></div>';
             const res = await callAPI("get_doctor_history", { userEmail: currentUser.email });
-            
             if(res.status === 'success') {
                 listDiv.innerHTML = '';
                 if(res.history.length === 0) listDiv.innerHTML = '<p class="text-slate-500 italic">Belum ada riwayat.</p>';
@@ -443,108 +439,65 @@
                     res.history.forEach(q => {
                         const card = document.createElement('div');
                         card.className = "bg-white border-4 border-black p-4 hover:shadow-lg transition flex justify-between items-center bg-green-50";
-                        card.innerHTML = `
-                            <div><h4 class="font-black text-xl text-black uppercase">${q.nama}</h4><p class="text-sm font-bold text-slate-600 bg-slate-200 px-2 inline-block">RM: ${q.rm}</p></div>
-                            <button onclick='openMedicalEditor("${q.visumId}")' class="bg-green-800 text-white px-4 py-2 font-black border-2 border-black hover:bg-green-700">EDIT <i class="fas fa-edit"></i></button>`;
+                        card.innerHTML = `<div><h4 class="font-black text-xl text-black uppercase">${q.nama}</h4><p class="text-sm font-bold text-slate-600 bg-slate-200 px-2 inline-block">RM: ${q.rm}</p></div><button onclick='openMedicalEditor("${q.visumId}")' class="bg-green-800 text-white px-4 py-2 font-black border-2 border-black hover:bg-green-700">EDIT <i class="fas fa-edit"></i></button>`;
                         listDiv.appendChild(card);
                     });
                 }
             }
         }
 
-        // --- MEDICAL EDITOR ---
-        async function openMedicalEditor(visumId) {
-            nav('input-medis');
-            await loadVisumDetails(visumId);
-        }
+        async function openMedicalEditor(visumId) { nav('input-medis'); await loadVisumDetails(visumId); }
 
         async function loadVisumDetails(visumId) {
             document.getElementById('medis-nama-pasien').innerText = "Loading...";
-            
-            // Show Loader for Photos
             document.getElementById('existing-photos-container').classList.remove('hidden');
             document.getElementById('existing-photos-loader').classList.remove('hidden');
             document.getElementById('existing-photos-list').innerHTML = '';
-
             const res = await callAPI("get_visum_details", { visumId: visumId });
             document.getElementById('existing-photos-loader').classList.add('hidden');
-
             if(res.status === 'success') {
                 const data = res.data;
                 currentVisumData = data;
                 saveState();
-
                 document.getElementById('medis-nama-pasien').innerText = data.nama;
                 document.getElementById('medis-rm').innerText = data.rm;
                 document.getElementById('medis-visum-id').value = data.visumId;
-                
-                // Existing Photos
                 const existingDiv = document.getElementById('existing-photos-list');
                 const container = document.getElementById('existing-photos-container');
-                
                 if(res.photos.length > 0) {
                     container.classList.remove('hidden');
                     existingDiv.innerHTML = '';
                     res.photos.forEach(photo => {
-                        // Check if Base64 or null
                         let imgSrc = photo.url;
-                        let imgElem = '';
-                        if(!imgSrc) {
-                             imgElem = `<div class="w-full h-full bg-slate-200 flex items-center justify-center font-bold text-red-500">GAMBAR GAGAL LOAD</div>`;
-                        } else {
-                             imgElem = `<img src="${imgSrc}" class="w-full h-full object-cover">`;
-                        }
-
+                        let imgElem = !imgSrc ? `<div class="w-full h-full bg-slate-200 flex items-center justify-center font-bold text-red-500">GAMBAR GAGAL LOAD</div>` : `<img src="${imgSrc}" class="w-full h-full object-cover">`;
                         const el = document.createElement('div');
                         el.className = "bg-white border-2 border-slate-300 p-4 flex flex-col md:flex-row gap-4 items-start";
-                        el.innerHTML = `
-                            <div class="w-full md:w-1/3 aspect-video bg-black overflow-hidden border-2 border-black">${imgElem}</div>
-                            <div class="w-full md:w-2/3">
-                                <label class="block text-xs font-bold uppercase mb-1">Keterangan (Tersimpan)</label>
-                                <textarea id="caption-${photo.photoId}" class="w-full hc-input p-2 h-20 mb-2">${photo.caption}</textarea>
-                                <div class="flex gap-2">
-                                    <button onclick="updateCaption('${photo.photoId}')" class="bg-blue-600 text-white px-3 py-1 text-xs font-bold border border-black hover:bg-blue-700">UPDATE TEKS</button>
-                                    <button onclick="deletePhoto('${photo.photoId}', '${photo.fileId}')" class="bg-red-600 text-white px-3 py-1 text-xs font-bold border border-black hover:bg-red-700">HAPUS FOTO</button>
-                                </div>
-                            </div>`;
+                        el.innerHTML = `<div class="w-full md:w-1/3 aspect-video bg-black overflow-hidden border-2 border-black">${imgElem}</div><div class="w-full md:w-2/3"><label class="block text-xs font-bold uppercase mb-1">Keterangan (Tersimpan)</label><textarea id="caption-${photo.photoId}" class="w-full hc-input p-2 h-20 mb-2">${photo.caption}</textarea><div class="flex gap-2"><button onclick="updateCaption('${photo.photoId}')" class="bg-blue-600 text-white px-3 py-1 text-xs font-bold border border-black hover:bg-blue-700">UPDATE TEKS</button><button onclick="deletePhoto('${photo.photoId}', '${photo.fileId}')" class="bg-red-600 text-white px-3 py-1 text-xs font-bold border border-black hover:bg-red-700">HAPUS FOTO</button></div></div>`;
                         existingDiv.appendChild(el);
                     });
-                } else {
-                    container.classList.add('hidden');
-                }
-
-                // Reset New Photos
-                selectedPhotos = [];
-                renderPhotoInputs();
+                } else { container.classList.add('hidden'); }
+                selectedPhotos = []; renderPhotoInputs();
             } else { showToast("Gagal load data", "error"); nav('dashboard'); }
         }
 
         async function updateCaption(photoId) {
             const newCap = document.getElementById('caption-'+photoId).value;
             const res = await callAPI("update_caption", { photoId: photoId, caption: newCap, userEmail: currentUser.email });
-            if(res.status === 'success') showToast("Keterangan diupdate", "success");
-            else showToast("Gagal update", "error");
+            if(res.status === 'success') showToast("Keterangan diupdate", "success"); else showToast("Gagal update", "error");
         }
 
         async function deletePhoto(photoId, fileId) {
             if(!confirm("Yakin hapus foto ini secara permanen?")) return;
             const res = await callAPI("delete_photo", { photoId: photoId, fileId: fileId, userEmail: currentUser.email });
-            if(res.status === 'success') {
-                showToast("Foto dihapus", "success");
-                loadVisumDetails(currentVisumData.visumId); // Reload
-            } else showToast("Gagal hapus", "error");
+            if(res.status === 'success') { showToast("Foto dihapus", "success"); loadVisumDetails(currentVisumData.visumId); } else showToast("Gagal hapus", "error");
         }
 
-        // --- NEW PHOTO UPLOAD ---
         function handleFileSelect(event) {
             const files = Array.from(event.target.files);
             if(files.length === 0) return;
             files.forEach(file => {
                 const reader = new FileReader();
-                reader.onload = (e) => {
-                    selectedPhotos.push({ file: file, previewUrl: e.target.result, caption: "" });
-                    renderPhotoInputs();
-                };
+                reader.onload = (e) => { selectedPhotos.push({ file: file, previewUrl: e.target.result, caption: "" }); renderPhotoInputs(); };
                 reader.readAsDataURL(file);
             });
         }
@@ -555,15 +508,7 @@
             selectedPhotos.forEach((item, index) => {
                 const div = document.createElement('div');
                 div.className = "bg-white border-2 border-slate-300 p-4 flex flex-col md:flex-row gap-4 items-start";
-                div.innerHTML = `
-                    <div class="w-full md:w-1/3 aspect-video bg-black overflow-hidden border-2 border-black relative group">
-                        <img src="${item.previewUrl}" class="w-full h-full object-cover">
-                        <button onclick="removePhoto(${index})" class="absolute top-2 right-2 bg-red-600 text-white w-8 h-8 font-bold border-2 border-white hover:bg-red-700">X</button>
-                    </div>
-                    <div class="w-full md:w-2/3">
-                        <label class="block text-xs font-bold uppercase mb-1">Keterangan Foto Baru</label>
-                        <textarea oninput="updateNewCaption(${index}, this.value)" class="w-full hc-input p-2 h-24" placeholder="Ketik keterangan...">${item.caption}</textarea>
-                    </div>`;
+                div.innerHTML = `<div class="w-full md:w-1/3 aspect-video bg-black overflow-hidden border-2 border-black relative group"><img src="${item.previewUrl}" class="w-full h-full object-cover"><button onclick="removePhoto(${index})" class="absolute top-2 right-2 bg-red-600 text-white w-8 h-8 font-bold border-2 border-white hover:bg-red-700">X</button></div><div class="w-full md:w-2/3"><label class="block text-xs font-bold uppercase mb-1">Keterangan Foto Baru</label><textarea oninput="updateNewCaption(${index}, this.value)" class="w-full hc-input p-2 h-24" placeholder="Ketik keterangan...">${item.caption}</textarea></div>`;
                 container.appendChild(div);
             });
         }
@@ -572,74 +517,43 @@
         function updateNewCaption(index, val) { selectedPhotos[index].caption = val; }
 
         async function submitMedicalData() {
-            if(selectedPhotos.length === 0 && document.getElementById('existing-photos-container').classList.contains('hidden')) {
-                return showToast("Tidak ada data untuk disimpan.", "error");
-            }
-            
-            // If only updating existing photos, users use the direct buttons.
-            // This button specifically handles NEW photos.
+            if(selectedPhotos.length === 0 && document.getElementById('existing-photos-container').classList.contains('hidden')) return showToast("Tidak ada data untuk disimpan.", "error");
             if(selectedPhotos.length > 0) {
                 const btn = document.getElementById('btn-submit-medis'); btn.disabled = true; btn.innerHTML = "MENGOMPRES & UPLOAD...";
-                
                 const processedPhotos = await Promise.all(selectedPhotos.map(async (p) => {
                     const compressedData = await compressImage(p.file);
                     return { data: compressedData, mimeType: 'image/jpeg', caption: p.caption };
                 }));
-
                 const payload = { visumId: currentVisumData.visumId, nomorRm: currentVisumData.rm, photos: processedPhotos };
                 const res = await callAPI("save_medical_data_v2", { payload: payload, userEmail: currentUser.email });
-                
-                if(res.status === 'success') {
-                    showToast("Tersimpan!", "success");
-                    loadVisumDetails(currentVisumData.visumId); // Reload to show as 'existing'
-                } else showToast("Gagal: " + res.message, "error");
+                if(res.status === 'success') { showToast("Tersimpan!", "success"); loadVisumDetails(currentVisumData.visumId); } else showToast("Gagal: " + res.message, "error");
                 btn.disabled = false; btn.innerHTML = "SIMPAN PERUBAHAN";
-            } else {
-                showToast("Perubahan foto lama sudah tersimpan langsung.", "info");
-            }
+            } else { showToast("Perubahan foto lama sudah tersimpan langsung.", "info"); }
         }
 
         function compressImage(file) {
             return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
+                const reader = new FileReader(); reader.readAsDataURL(file);
                 reader.onload = (ev) => {
-                    const img = new Image();
-                    img.src = ev.target.result;
+                    const img = new Image(); img.src = ev.target.result;
                     img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const maxWidth = 1024; const scale = maxWidth / img.width;
-                        const w = (img.width > maxWidth) ? maxWidth : img.width;
-                        const h = (img.width > maxWidth) ? img.height * scale : img.height;
-                        canvas.width = w; canvas.height = h;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, w, h);
-                        resolve(canvas.toDataURL('image/jpeg', 0.7).split(',')[1]);
+                        const canvas = document.createElement('canvas'); const maxWidth = 1024; const scale = maxWidth / img.width; const w = (img.width > maxWidth) ? maxWidth : img.width; const h = (img.width > maxWidth) ? img.height * scale : img.height; canvas.width = w; canvas.height = h; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, w, h); resolve(canvas.toDataURL('image/jpeg', 0.7).split(',')[1]);
                     };
                 };
             });
         }
 
-        // --- UTILS & PRE-FETCH LOGIC ---
         function nav(id) { 
             document.querySelectorAll('.page-view').forEach(e => e.classList.add('hidden')); 
             document.getElementById('view-'+id).classList.remove('hidden'); 
             saveState(); 
-            
-            // Auto fetch reg number when opening admin input
-            if(id === 'input-admin') {
-                fetchNextRegNumber();
-            }
+            if(id === 'input-admin') fetchNextRegNumber();
         }
 
         async function fetchNextRegNumber() {
             document.getElementById('reg-number-preview').value = "Mengambil data...";
             const res = await callAPI("get_next_reg_number", {});
-            if(res.status === 'success') {
-                document.getElementById('reg-number-preview').value = res.nextNumber;
-            } else {
-                document.getElementById('reg-number-preview').value = "Error";
-            }
+            if(res.status === 'success') document.getElementById('reg-number-preview').value = res.nextNumber; else document.getElementById('reg-number-preview').value = "Error";
         }
 
         async function callAPI(a, d) {
@@ -656,28 +570,101 @@
             const file = document.getElementById('file-resume').files[0];
             const send = async (p) => {
                 const res = await callAPI('save_visum_admin', { payload: p, userEmail: currentUser.email });
-                if(res.status==='success') { 
-                    showToast("TERSIMPAN","success"); 
-                    e.target.reset(); 
-                    fetchNextRegNumber(); // Refresh number after save
-                } else showToast(res.message,"error");
+                if(res.status==='success') { showToast("TERSIMPAN","success"); e.target.reset(); fetchNextRegNumber(); } else showToast(res.message,"error");
                 btn.disabled=false; btn.innerHTML="SIMPAN DATA";
             };
             if(file) { const r = new FileReader(); r.onload=()=>{ payload.fileResumeData=r.result.split(',')[1]; payload.fileResumeName=file.name; send(payload); }; r.readAsDataURL(file); } else send(payload);
         }
         
-        // --- SEARCH: DELETE FEATURE FOR SUPER ADMIN ---
+        // --- SEARCH & SORTING ---
         async function doSearch() {
             const k = document.getElementById('search-input').value;
+            const isAdmin = (currentUser.role === 'Admin' || currentUser.role === 'Super Admin');
+            
             const res = await callAPI('search_patient', {keyword: k, userEmail: currentUser.email});
-            const div = document.getElementById('search-results');
             
             if(!res.data || res.data.length === 0) {
-                div.innerHTML = `<div class="text-center p-8 text-black font-bold bg-slate-100 border-2 border-black uppercase">Data tidak ditemukan.</div>`;
+                const emptyMsg = `<div class="text-center p-8 text-black font-bold bg-slate-100 border-2 border-black uppercase">Data tidak ditemukan.</div>`;
+                document.getElementById('search-results').innerHTML = emptyMsg;
+                document.getElementById('patient-table-body').innerHTML = `<tr><td colspan="7" class="p-4 text-center">${emptyMsg}</td></tr>`;
                 return;
             }
 
-            div.innerHTML = res.data.map(d => `
+            // Store for sorting
+            currentPatientData = res.data;
+            
+            if(isAdmin) {
+                renderTable(currentPatientData);
+            } else {
+                renderCards(currentPatientData);
+            }
+        }
+
+        // Sorting Logic
+        function sortPatients(field) {
+            // Toggle order
+            if(sortState.field === field) {
+                sortState.order = sortState.order === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortState.field = field;
+                sortState.order = 'asc'; // Default new sort
+            }
+
+            // Update Icons
+            document.querySelectorAll('.sort-icon').forEach(el => el.className = 'sort-icon'); // Reset
+            document.getElementById(`sort-${field}`).className = `sort-icon sort-${sortState.order}`;
+
+            // Sort Array
+            currentPatientData.sort((a, b) => {
+                let valA = a[field] || '';
+                let valB = b[field] || '';
+                
+                // Handle Date Sorting specially if field is 'tgl'
+                if(field === 'tgl') {
+                    valA = new Date(valA).getTime();
+                    valB = new Date(valB).getTime();
+                } else {
+                    valA = valA.toString().toLowerCase();
+                    valB = valB.toString().toLowerCase();
+                }
+
+                if (valA < valB) return sortState.order === 'asc' ? -1 : 1;
+                if (valA > valB) return sortState.order === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            renderTable(currentPatientData);
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('patient-table-body');
+            tbody.innerHTML = data.map(d => `
+                <tr class="hover:bg-yellow-50 border-b border-black">
+                    <td class="px-4 py-3">${d.noReg || '-'}</td>
+                    <td class="px-4 py-3">${new Date(d.tgl).toLocaleDateString()}</td>
+                    <td class="px-4 py-3 uppercase">${d.nama}</td>
+                    <td class="px-4 py-3 font-mono">${d.rm}</td>
+                    <td class="px-4 py-3">${d.dokter}</td>
+                    <td class="px-4 py-3">
+                        ${d.resume ? 
+                            `<span class="text-white bg-green-800 px-2 py-1 text-xs font-black uppercase rounded"><i class="fas fa-check"></i> SELESAI</span>` : 
+                            `<span class="text-black bg-yellow-400 px-2 py-1 text-xs font-black uppercase rounded"><i class="fas fa-clock"></i> PENDING</span>`
+                        }
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        ${(currentUser.role === 'Super Admin') ? 
+                            `<button onclick="deleteVisum('${d.id}', '${d.nama}')" class="text-red-600 hover:text-red-800 font-bold" title="Hapus Permanen">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>` : '<span class="text-slate-400">-</span>'
+                        }
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderCards(data) {
+            const div = document.getElementById('search-results');
+            div.innerHTML = data.map(d => `
                 <div class="bg-white p-5 border-4 border-black flex flex-col md:flex-row justify-between items-center hover:bg-yellow-50 transition gap-4">
                     <div>
                         <div class="font-black text-xl text-black uppercase">${d.nama}</div>
@@ -685,44 +672,25 @@
                         <div class="text-sm text-slate-800 mt-1 font-bold"><i class="far fa-calendar-alt"></i> ${new Date(d.tgl).toLocaleDateString()} &bull; ${d.dokter}</div>
                     </div>
                     <div class="text-right w-full md:w-auto">
-                        <div class="mb-2">
-                            ${d.resume ? 
-                                `<span class="text-white bg-green-800 px-4 py-2 text-sm font-black border-2 border-black uppercase block md:inline-block text-center"><i class="fas fa-check"></i> SELESAI</span>` : 
-                                `<span class="text-black bg-yellow-400 px-4 py-2 text-sm font-black border-2 border-black uppercase block md:inline-block text-center"><i class="fas fa-clock"></i> PENDING</span>`
-                            }
-                        </div>
-                        ${(currentUser.role === 'Super Admin') ? 
-                            `<button onclick="deleteVisum('${d.id}', '${d.nama}')" class="text-xs bg-red-600 text-white px-4 py-2 rounded-none border-2 border-black hover:bg-red-700 font-bold uppercase w-full shadow-[2px_2px_0px_#000] active:shadow-none active:translate-y-[2px] transition-all">
-                                <i class="fas fa-trash-alt"></i> HAPUS DATA
-                            </button>` : ''
+                        ${d.resume ? 
+                            `<span class="text-white bg-green-800 px-4 py-2 text-sm font-black border-2 border-black uppercase block md:inline-block text-center"><i class="fas fa-check"></i> SELESAI</span>` : 
+                            `<span class="text-black bg-yellow-400 px-4 py-2 text-sm font-black border-2 border-black uppercase block md:inline-block text-center"><i class="fas fa-clock"></i> PENDING</span>`
                         }
                     </div>
                 </div>`).join('');
         }
 
         async function deleteVisum(visumId, patientName) {
-            if (!confirm(`PERINGATAN KERAS!\n\nAnda akan menghapus permanen data pasien:\n${patientName}\n\n- Data Database HILANG\n- Folder Drive HILANG\n- Foto HILANG\n\nTindakan ini TIDAK BISA DIBATALKAN. Lanjutkan?`)) {
-                return;
-            }
-
+            if (!confirm(`PERINGATAN KERAS!\n\nAnda akan menghapus permanen data pasien:\n${patientName}\n\n- Data Database HILANG\n- Folder Drive HILANG\n- Foto HILANG\n\nTindakan ini TIDAK BISA DIBATALKAN. Lanjutkan?`)) return;
             const res = await callAPI('delete_visum_data', { visumId: visumId, userEmail: currentUser.email });
-            
-            if (res.status === 'success') {
-                showToast("DATA DIHAPUS PERMANEN", "success");
-                doSearch(); // Refresh results
-            } else {
-                showToast("GAGAL: " + res.message, "error");
-            }
+            if (res.status === 'success') { showToast("DATA DIHAPUS PERMANEN", "success"); doSearch(); } else { showToast("GAGAL: " + res.message, "error"); }
         }
         
-        // --- USER MANAGEMENT (NEW UPDATE) ---
         async function loadUsers() {
              nav('users'); 
              const tbody = document.getElementById('user-table-body');
              tbody.innerHTML = '<div class="loader"></div> Memuat data...';
-             
              const res = await callAPI("get_users", {adminEmail:currentUser.email});
-             
              if(res.status === 'success') {
                  tbody.innerHTML = res.users.map(u => `
                     <div class="border-2 border-black p-3 flex justify-between items-center bg-slate-50 hover:bg-white transition group">
@@ -735,18 +703,13 @@
                         <div class="text-right flex flex-col gap-2 items-end">
                             <span class="${u.status==='Aktif'?'text-green-700 bg-green-100':'text-red-700 bg-red-100'} font-black text-xs px-2 py-1 rounded uppercase">${u.status}</span>
                             ${(u.role !== 'Super Admin' && currentUser.email !== u.email) ? 
-                                `<button onclick='openEditUserModal(${JSON.stringify(u)})' class="text-xs font-bold bg-blue-900 text-white px-3 py-1 hover:bg-blue-800 shadow-[2px_2px_0px_#000] active:shadow-none active:translate-y-[2px] transition-all">
-                                    <i class="fas fa-edit"></i> EDIT
-                                </button>` : ''
+                                `<button onclick='openEditUserModal(${JSON.stringify(u)})' class="text-xs font-bold bg-blue-900 text-white px-3 py-1 hover:bg-blue-800 shadow-[2px_2px_0px_#000] active:shadow-none active:translate-y-[2px] transition-all"><i class="fas fa-edit"></i> EDIT</button>` : ''
                             }
                         </div>
                     </div>`).join('');
-             } else {
-                 tbody.innerHTML = `<div class="text-red-600 font-bold">Error: ${res.message}</div>`;
-             }
+             } else { tbody.innerHTML = `<div class="text-red-600 font-bold">Error: ${res.message}</div>`; }
         }
 
-        // Open Modal & Fill Data
         function openEditUserModal(user) {
             document.getElementById('edit-email-display').value = user.email;
             document.getElementById('edit-email-target').value = user.email;
@@ -754,7 +717,6 @@
             document.getElementById('edit-hp').value = user.noHp;
             document.getElementById('edit-role').value = user.role;
             document.getElementById('edit-status').value = user.status;
-            
             document.getElementById('edit-user-modal').classList.remove('hidden');
             document.getElementById('edit-user-modal').classList.add('flex');
         }
@@ -764,41 +726,18 @@
             document.getElementById('edit-user-modal').classList.remove('flex');
         }
 
-        // Handle Submit Edit
         async function handleUpdateUser(e) {
             e.preventDefault();
-            
             const btn = document.getElementById('btn-save-user');
             const originalText = btn.innerHTML;
             btn.innerHTML = "Menyimpan...";
             btn.disabled = true;
-
             const targetEmail = document.getElementById('edit-email-target').value;
-            const newData = {
-                nama: document.getElementById('edit-nama').value,
-                noHp: document.getElementById('edit-hp').value,
-                role: document.getElementById('edit-role').value,
-                status: document.getElementById('edit-status').value
-            };
-
-            const res = await callAPI("update_user_profile", { 
-                adminEmail: currentUser.email,
-                targetEmail: targetEmail,
-                newData: newData
-            });
-
-            if (res.status === 'success') {
-                showToast("Profil User Diperbarui", "success");
-                closeEditModal();
-                loadUsers(); // Refresh list
-            } else {
-                showToast("Gagal: " + res.message, "error");
-            }
-            
-            btn.innerHTML = originalText;
-            btn.disabled = false;
+            const newData = { nama: document.getElementById('edit-nama').value, noHp: document.getElementById('edit-hp').value, role: document.getElementById('edit-role').value, status: document.getElementById('edit-status').value };
+            const res = await callAPI("update_user_profile", { adminEmail: currentUser.email, targetEmail: targetEmail, newData: newData });
+            if (res.status === 'success') { showToast("Profil User Diperbarui", "success"); closeEditModal(); loadUsers(); } else { showToast("Gagal: " + res.message, "error"); }
+            btn.innerHTML = originalText; btn.disabled = false;
         }
-
     </script>
 </body>
 </html>
