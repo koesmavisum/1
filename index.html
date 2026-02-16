@@ -230,7 +230,7 @@
              <!-- VIEW: USERS -->
             <section id="view-users" class="page-view hidden">
                  <h2 class="text-3xl font-black text-black uppercase mb-6">User Manager</h2>
-                 <div class="hc-card p-4"><button onclick="loadUsers()" class="bg-blue-900 text-white p-2 mb-4 font-bold">Refresh List</button><div id="user-table-body"></div></div>
+                 <div class="hc-card p-4"><button onclick="loadUsers()" class="bg-blue-900 text-white p-2 mb-4 font-bold border-2 border-black hover:bg-blue-800">REFRESH LIST</button><div id="user-table-body" class="space-y-2 mt-4"></div></div>
             </section>
         </main>
     </div>
@@ -617,9 +617,30 @@
             const div = document.getElementById('search-results');
             div.innerHTML = (res.data||[]).map(d => `<div class="bg-white p-4 border-4 border-black mb-2"><h4 class="font-black">${d.nama}</h4><p>RM: ${d.rm} - ${d.dokter}</p></div>`).join('') || '<p class="text-center font-bold">TIDAK ADA DATA</p>';
         }
+        
+        // FIXED loadUsers FUNCTION WITH NAVIGATION
         async function loadUsers() {
+             nav('users'); // <--- CRITICAL FIX: Switch view first
+             const tbody = document.getElementById('user-table-body');
+             tbody.innerHTML = '<div class="loader"></div> Memuat data...';
+             
              const res = await callAPI("get_users", {adminEmail:currentUser.email});
-             document.getElementById('user-table-body').innerHTML = res.users.map(u => `<div class="border-b p-2 flex justify-between"><span>${u.nama} (${u.role})</span><span class="${u.status==='Aktif'?'text-green-600':'text-red-600'} font-bold">${u.status}</span></div>`).join('');
+             
+             if(res.status === 'success') {
+                 tbody.innerHTML = res.users.map(u => `
+                    <div class="border-2 border-black p-3 flex justify-between items-center bg-slate-50 hover:bg-white transition">
+                        <div>
+                            <div class="font-black text-lg">${u.nama}</div>
+                            <div class="text-xs text-slate-500 font-bold bg-yellow-200 inline-block px-1">${u.role}</div>
+                            <div class="text-xs text-slate-400">${u.email}</div>
+                        </div>
+                        <div class="text-right">
+                            <span class="${u.status==='Aktif'?'text-green-700 bg-green-100':'text-red-700 bg-red-100'} font-black text-xs px-2 py-1 rounded uppercase">${u.status}</span>
+                        </div>
+                    </div>`).join('');
+             } else {
+                 tbody.innerHTML = `<div class="text-red-600 font-bold">Error: ${res.message}</div>`;
+             }
         }
     </script>
 </body>
