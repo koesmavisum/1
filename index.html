@@ -9,455 +9,283 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- tsParticles for effects -->
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.11.1/tsparticles.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* Base Settings */
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #0f172a; overflow-x: hidden; }
         
-        /* Login Page Specifics */
+        /* Login Page Particles Background */
         #login-view {
             position: relative;
             background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
             overflow: hidden;
         }
-        
-        #tsparticles {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            z-index: 0; /* Behind the card */
-        }
+        #tsparticles { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 0; }
 
         .login-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(12px);
             border-radius: 24px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            z-index: 10; /* Above particles */
+            z-index: 10;
             border: 1px solid rgba(255, 255, 255, 0.5);
-            transition: transform 0.3s ease;
+            transition: all 0.3s ease;
         }
         
-        .login-card:hover {
-            transform: translateY(-5px);
-        }
-
-        /* Utilities */
-        .hc-input { border: 1px solid #cbd5e1; background-color: #fff; transition: all 0.3s; }
-        .hc-input:focus { outline: none; border-color: #3b82f6; ring: 2px solid #93c5fd; }
-        .hc-card { background: white; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-radius: 12px; }
+        .hc-input { border: 1px solid #cbd5e1; background-color: #fff; transition: all 0.2s; }
+        .hc-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        .hc-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; }
         
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         .page-view { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
-        .tab-active { background-color: #1e3a8a; color: white; border-color: transparent; }
-        .tab-inactive { background-color: #f1f5f9; color: #64748b; border-color: #e2e8f0; }
+        .tab-active { background-color: #1e3a8a; color: white; }
+        .tab-inactive { background-color: #f1f5f9; color: #64748b; }
         
-        /* Sorting Icons */
         .sort-icon::after { content: '\f0dc'; font-family: 'Font Awesome 6 Free'; font-weight: 900; margin-left: 5px; opacity: 0.3; }
         .sort-asc::after { content: '\f0de'; opacity: 1; }
         .sort-desc::after { content: '\f0dd'; opacity: 1; }
     </style>
 </head>
-<body class="text-slate-900">
+<body>
 
-    <!-- CONFIGURATION -->
     <script>
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxo08z_OLMe6KpKPJ3wOX6QKQ80YTweJfQfaP0plPQqauZKQ3qp1vIVKpToTIS7UVqy/exec"; 
         const GOOGLE_CLIENT_ID = "606872357226-63eva14elent817dpb55eb0o2savf4rt.apps.googleusercontent.com"; 
     </script>
 
-    <!-- TOAST -->
+    <!-- TOAST NOTIFICATION -->
     <div id="toast" class="fixed top-5 right-5 z-50 transform translate-x-full transition-transform duration-300">
         <div class="bg-white border-l-4 border-blue-600 p-4 flex items-center gap-3 shadow-2xl rounded-lg min-w-[300px]">
             <i class="fas fa-info-circle text-blue-600 text-xl"></i>
-            <span id="toast-message" class="font-semibold text-slate-800">Notification</span>
+            <span id="toast-message" class="font-semibold text-slate-800">Pesan</span>
         </div>
     </div>
 
-    <!-- 1. LOGIN PAGE (NEW DESIGN) -->
+    <!-- 1. LOGIN VIEW -->
     <section id="login-view" class="h-screen flex items-center justify-center px-4 relative">
-        <!-- Particles Container -->
         <div id="tsparticles"></div>
-
-        <!-- Login Card -->
         <div class="login-card p-10 w-full max-w-md text-center relative">
             <div class="mb-6 flex justify-center">
-                <div class="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg transform rotate-3 hover:rotate-0 transition duration-500">
-                    <i class="fas fa-hospital-user text-4xl text-white"></i>
+                <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-hospital-user text-3xl text-white"></i>
                 </div>
             </div>
-            
-            <h1 class="text-3xl font-bold text-slate-800 mb-2 tracking-tight">Sistem Visum Digital</h1>
-            <p class="text-slate-500 mb-8 font-medium">RSUD dr. R. Koesma</p>
-            
-            <div class="space-y-6">
-                <!-- Google Button Container -->
-                <div class="flex justify-center">
-                    <div id="g_id_onload"
-                         data-client_id="606872357226-63eva14elent817dpb55eb0o2savf4rt.apps.googleusercontent.com"
-                         data-callback="handleCredentialResponse"
-                         data-auto_prompt="false">
-                    </div>
-                    <div class="g_id_signin" 
-                         data-type="standard" 
-                         data-size="large" 
-                         data-theme="outline" 
-                         data-text="sign_in_with" 
-                         data-shape="rectangular" 
-                         data-logo_alignment="left"
-                         data-width="300">
-                    </div>
-                </div>
+            <h1 class="text-2xl font-bold text-slate-800 mb-1">E-VISUM DIGITAL</h1>
+            <p class="text-slate-500 mb-8 text-sm">RSUD dr. R. Koesma Tuban</p>
+            <div class="flex justify-center">
+                <div id="g_id_onload" data-client_id="606872357226-63eva14elent817dpb55eb0o2savf4rt.apps.googleusercontent.com" data-callback="handleCredentialResponse" data-auto_prompt="false"></div>
+                <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signin_with" data-shape="rectangular" data-width="300"></div>
             </div>
-
-            <div class="mt-10 pt-6 border-t border-slate-200">
-                <p class="text-xs text-slate-400 font-medium flex items-center justify-center gap-2">
-                    <i class="fas fa-lock"></i> Akses Terbatas / Authorized Personnel Only
-                </p>
-            </div>
+            <div class="mt-8 pt-4 border-t text-[10px] text-slate-400 uppercase tracking-widest font-bold">Akses Terbatas</div>
         </div>
     </section>
 
-    <!-- 2. REGISTER PAGE -->
-    <section id="register-view" class="hidden h-screen flex items-center justify-center bg-slate-100">
-        <div class="hc-card p-8 w-full max-w-md bg-white">
-            <h2 class="text-2xl font-bold text-center mb-6 border-b pb-4 text-slate-800">Aktivasi Akun</h2>
-            <form onsubmit="handleRegister(event)" class="space-y-5">
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
-                    <input type="email" id="reg-email" disabled class="w-full bg-slate-100 border border-slate-300 px-4 py-2 rounded font-medium text-slate-600">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nama Lengkap & Gelar</label>
-                    <input type="text" id="reg-nama" required class="w-full hc-input px-4 py-2 rounded" placeholder="Contoh: Dr. Budi Santoso, Sp.F">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nomor WhatsApp</label>
-                    <input type="tel" id="reg-hp" required class="w-full hc-input px-4 py-2 rounded" placeholder="0812...">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Role Profesi</label>
-                    <select id="reg-role" class="w-full hc-input px-4 py-2 rounded">
-                        <option value="Perawat">Perawat / Admin Medis</option>
-                        <option value="Dokter">Dokter Pemeriksa</option>
-                    </select>
-                </div>
-                <button type="submit" class="w-full bg-blue-700 text-white py-3 rounded font-bold hover:bg-blue-800 transition shadow-lg mt-4" id="btn-reg-submit">
-                    AKTIFKAN AKUN
-                </button>
+    <!-- 2. REGISTER VIEW -->
+    <section id="register-view" class="hidden h-screen items-center justify-center bg-slate-100">
+        <div class="hc-card p-8 w-full max-w-md bg-white shadow-xl">
+            <h2 class="text-xl font-bold mb-6 text-slate-800 border-b pb-3">Aktivasi Akun</h2>
+            <form onsubmit="handleRegister(event)" class="space-y-4">
+                <div><label class="block text-[10px] font-bold text-slate-400 uppercase">Email</label><input type="email" id="reg-email" disabled class="w-full bg-slate-50 p-2 rounded border text-slate-500 font-medium"></div>
+                <div><label class="block text-[10px] font-bold text-slate-400 uppercase">Nama & Gelar</label><input type="text" id="reg-nama" required class="w-full hc-input p-2 rounded"></div>
+                <div><label class="block text-[10px] font-bold text-slate-400 uppercase">Nomor WhatsApp</label><input type="tel" id="reg-hp" required class="w-full hc-input p-2 rounded"></div>
+                <div><label class="block text-[10px] font-bold text-slate-400 uppercase">Role</label><select id="reg-role" class="w-full hc-input p-2 rounded"><option value="Perawat">Perawat / Admin Medis</option><option value="Dokter">Dokter Pemeriksa</option></select></div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-2.5 rounded font-bold hover:bg-blue-700 transition mt-4">AKTIFKAN SEKARANG</button>
             </form>
         </div>
     </section>
 
-    <!-- 3. MAIN APP LAYOUT -->
-    <div id="app-view" class="hidden min-h-screen flex flex-col md:flex-row bg-white">
-        <!-- SIDEBAR -->
-        <aside class="w-full md:w-72 bg-slate-900 text-white z-10 flex flex-col">
-            <div class="p-6 border-b border-slate-800 flex items-center gap-4 bg-slate-950">
-                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-                    <i class="fas fa-heartbeat text-xl"></i>
-                </div>
-                <div>
-                    <h2 class="font-bold text-lg tracking-wide text-white">E-VISUM</h2>
-                    <p class="text-xs text-blue-400 font-semibold tracking-wider">Forensik System</p>
-                </div>
+    <!-- 3. MAIN APP VIEW -->
+    <div id="app-view" class="hidden min-h-screen flex flex-col md:flex-row bg-slate-50">
+        <!-- Sidebar -->
+        <aside class="w-full md:w-64 bg-slate-900 text-white flex flex-col">
+            <div class="p-6 bg-slate-950 flex items-center gap-3">
+                <i class="fas fa-heartbeat text-blue-500 text-2xl"></i>
+                <span class="font-bold tracking-tighter text-xl">E-VISUM</span>
             </div>
-            
-            <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
-                <p class="px-4 text-xs uppercase text-slate-500 font-bold tracking-widest mb-2">Menu Utama</p>
-                
-                <button onclick="nav('dashboard')" class="nav-item w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-blue-400 transition flex items-center gap-3 font-medium active-nav bg-slate-800 text-blue-400">
-                    <i class="fas fa-chart-pie w-5"></i> Dashboard
-                </button>
-                
-                <button id="nav-perawat" onclick="nav('input-admin')" class="hidden nav-item w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-blue-400 transition flex items-center gap-3 font-medium">
-                    <i class="fas fa-file-medical w-5"></i> Input SPVR
-                </button>
-                
-                <button id="nav-search" onclick="nav('search')" class="hidden nav-item w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-blue-400 transition flex items-center gap-3 font-medium">
-                    <i class="fas fa-search w-5"></i> <span id="label-search">Pencarian</span>
-                </button>
+            <nav class="flex-1 p-4 space-y-1">
+                <button onclick="nav('dashboard')" class="nav-item w-full text-left px-4 py-2.5 rounded-lg hover:bg-slate-800 transition flex items-center gap-3 text-sm font-medium"><i class="fas fa-chart-pie w-4"></i> Dashboard</button>
+                <button id="nav-perawat" onclick="nav('input-admin')" class="hidden nav-item w-full text-left px-4 py-2.5 rounded-lg hover:bg-slate-800 transition flex items-center gap-3 text-sm font-medium"><i class="fas fa-plus-circle w-4"></i> Input SPVR</button>
+                <button id="nav-search" onclick="nav('search')" class="hidden nav-item w-full text-left px-4 py-2.5 rounded-lg hover:bg-slate-800 transition flex items-center gap-3 text-sm font-medium"><i class="fas fa-folder w-4"></i> <span id="label-search">Data Pasien</span></button>
                 
                 <div id="nav-admin-divider" class="hidden my-4 border-t border-slate-800"></div>
-                <p id="nav-admin-label" class="hidden px-4 text-xs uppercase text-slate-500 font-bold tracking-widest mb-2">Administrator</p>
-                
-                <button id="nav-users" onclick="loadUsers()" class="hidden nav-item w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-purple-400 transition flex items-center gap-3 font-medium">
-                    <i class="fas fa-users-cog w-5"></i> User Manager
-                </button>
+                <button id="nav-users" onclick="loadUsers()" class="hidden nav-item w-full text-left px-4 py-2.5 rounded-lg hover:bg-slate-800 transition flex items-center gap-3 text-sm font-medium"><i class="fas fa-users-cog w-4"></i> User Manager</button>
             </nav>
-
             <div class="p-4 bg-slate-950 border-t border-slate-800">
                 <div class="flex items-center gap-3 mb-4">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-center font-bold text-sm shadow-md" id="user-initial">U</div>
-                    <div class="overflow-hidden">
-                        <p class="text-sm font-bold text-white truncate" id="user-name">User</p>
-                        <p class="text-xs text-slate-400 font-medium" id="user-role">Role</p>
-                    </div>
+                    <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs" id="user-initial">U</div>
+                    <div class="overflow-hidden"><p class="text-xs font-bold truncate" id="user-name">User</p><p class="text-[10px] text-slate-500 font-bold uppercase" id="user-role">Role</p></div>
                 </div>
-                <button onclick="logout()" class="w-full text-xs bg-red-600/10 text-red-400 hover:bg-red-600 hover:text-white p-2 rounded transition font-bold flex items-center justify-center gap-2 border border-red-900/30">
-                    <i class="fas fa-sign-out-alt"></i> KELUAR
-                </button>
+                <button onclick="logout()" class="w-full text-[10px] bg-red-900/20 text-red-500 hover:bg-red-600 hover:text-white p-2 rounded transition font-bold border border-red-900/30">KELUAR</button>
             </div>
         </aside>
 
-        <!-- CONTENT -->
-        <main class="flex-1 overflow-y-auto h-screen p-6 md:p-8 bg-slate-50 relative">
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto h-screen p-6 md:p-10 relative">
             
-            <!-- VIEW: DASHBOARD -->
-            <section id="view-dashboard" class="page-view animate-fade-in">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-                    <div>
-                        <h2 class="text-2xl font-bold text-slate-800">Dashboard</h2>
-                        <p class="text-sm text-slate-500">Ringkasan Statistik Pelayanan</p>
-                    </div>
-                </div>
-                
-                <!-- STATS CARDS -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div class="hc-card p-6 bg-white border-none shadow-sm hover:shadow-md transition">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Visum</p>
-                                <h3 class="text-4xl font-bold text-blue-700 mt-2" id="stat-total">0</h3>
-                            </div>
-                            <div class="p-3 bg-blue-50 rounded-lg text-blue-600"><i class="fas fa-folder-open text-2xl"></i></div>
-                        </div>
-                    </div>
-                    
-                    <div class="hc-card p-6 bg-white border-none shadow-sm hover:shadow-md transition">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Bulan Ini</p>
-                                <h3 class="text-4xl font-bold text-emerald-700 mt-2" id="stat-month">0</h3>
-                            </div>
-                            <div class="p-3 bg-emerald-50 rounded-lg text-emerald-600"><i class="fas fa-calendar-check text-2xl"></i></div>
-                        </div>
-                    </div>
-                    
-                    <div class="hc-card p-6 bg-white border-none shadow-sm hover:shadow-md transition">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Pending</p>
-                                <h3 class="text-4xl font-bold text-orange-600 mt-2" id="stat-pending">0</h3>
-                            </div>
-                            <div class="p-3 bg-orange-50 rounded-lg text-orange-500"><i class="fas fa-clock text-2xl"></i></div>
-                        </div>
-                    </div>
+            <!-- Dashboard -->
+            <section id="view-dashboard" class="page-view">
+                <h2 class="text-2xl font-bold mb-6 text-slate-800">Dashboard</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div class="hc-card p-6 shadow-sm"><p class="text-slate-400 text-[10px] font-bold uppercase">Total Visum</p><h3 class="text-3xl font-bold text-blue-600 mt-1" id="stat-total">0</h3></div>
+                    <div class="hc-card p-6 shadow-sm"><p class="text-slate-400 text-[10px] font-bold uppercase">Bulan Ini</p><h3 class="text-3xl font-bold text-emerald-600 mt-1" id="stat-month">0</h3></div>
+                    <div class="hc-card p-6 shadow-sm"><p class="text-slate-400 text-[10px] font-bold uppercase">Status</p><h3 class="text-3xl font-bold text-orange-500 mt-1" id="stat-pending">Aktif</h3></div>
                 </div>
 
-                <!-- DOKTER SPECIFIC: QUEUE & HISTORY LIST -->
-                <div id="doctor-panel" class="hidden mb-8">
-                    <div class="flex gap-2 mb-4 bg-white p-1 rounded-lg border border-slate-200 w-fit">
-                        <button onclick="switchDocTab('queue')" id="tab-queue" class="px-6 py-2 rounded-md font-bold text-sm transition tab-active">Antrian Pasien</button>
-                        <button onclick="switchDocTab('history')" id="tab-history" class="px-6 py-2 rounded-md font-bold text-sm transition tab-inactive">Riwayat Pemeriksaan</button>
+                <div id="doctor-panel" class="hidden animate-fade-in">
+                    <div class="flex gap-2 mb-4 bg-white p-1 rounded-lg border w-fit">
+                        <button onclick="switchDocTab('queue')" id="tab-queue" class="px-6 py-2 rounded-md font-bold text-xs transition tab-active uppercase">Antrian</button>
+                        <button onclick="switchDocTab('history')" id="tab-history" class="px-6 py-2 rounded-md font-bold text-xs transition tab-inactive uppercase">Riwayat</button>
                     </div>
-
-                    <!-- ANTRIAN -->
-                    <div id="panel-queue" class="hc-card p-6 border-t-4 border-blue-600">
-                        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fas fa-user-clock text-blue-600"></i> Daftar Antrian Saya</h3>
-                        <div id="doctor-queue-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-                    </div>
-
-                    <!-- RIWAYAT -->
-                    <div id="panel-history" class="hidden hc-card p-6 border-t-4 border-emerald-600">
-                        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fas fa-history text-emerald-600"></i> Pasien Selesai (Edit Mode)</h3>
-                        <div id="doctor-history-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-                    </div>
+                    <div id="panel-queue" class="hc-card p-6 border-t-4 border-blue-600 shadow-sm"><div id="doctor-queue-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
+                    <div id="panel-history" class="hidden hc-card p-6 border-t-4 border-emerald-600 shadow-sm"><div id="doctor-history-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
                 </div>
             </section>
 
-            <!-- VIEW: INPUT ADMINISTRATIF (PERAWAT) -->
+            <!-- Input SPVR (Nurse Only) -->
             <section id="view-input-admin" class="page-view hidden">
-                <div class="flex items-center justify-between mb-6">
-                     <div>
-                        <h2 class="text-2xl font-bold text-slate-800">Registrasi Visum Baru</h2>
-                        <p class="text-sm text-slate-500">Lengkapi data pasien dan SPVR</p>
-                     </div>
-                     <button onclick="document.getElementById('form-visum').reset()" class="text-sm font-semibold text-slate-500 hover:text-blue-600 flex items-center gap-2"><i class="fas fa-redo"></i> Reset</button>
-                </div>
-                <form id="form-visum" class="hc-card p-8 max-w-5xl bg-white border-none shadow-sm" onsubmit="handleFormAdmin(event)">
-                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                        <div class="space-y-5">
-                            <h3 class="text-sm font-bold text-blue-700 uppercase tracking-wider border-b pb-2">Data Pasien</h3>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nomor Registrasi (Auto)</label>
-                                <input type="text" id="reg-number-preview" class="w-full bg-slate-100 text-slate-500 border border-slate-300 p-2.5 rounded font-mono font-bold" value="Loading..." readonly>
-                            </div>
-                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nomor Rekam Medis (RM)</label><input type="text" name="nomorRm" required class="w-full hc-input p-2.5 rounded" placeholder="Contoh: 12-34-56"></div>
-                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nama Lengkap Pasien</label><input type="text" name="namaPasien" required class="w-full hc-input p-2.5 rounded"></div>
-                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tanggal Kunjungan</label><input type="date" name="tglKunjungan" required class="w-full hc-input p-2.5 rounded cursor-pointer"></div>
-                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Dokter Pemeriksa</label><select id="dokter-select" name="dokterPemeriksa" class="w-full hc-input p-2.5 rounded cursor-pointer"><option>Loading Dokter...</option></select></div>
+                <h2 class="text-2xl font-bold mb-6 text-slate-800">Registrasi Visum</h2>
+                <form id="form-visum" class="hc-card p-8 bg-white shadow-lg max-w-4xl" onsubmit="handleFormAdmin(event)">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <div class="space-y-4">
+                            <h3 class="text-xs font-bold text-blue-600 uppercase border-b pb-1">Data Pasien</h3>
+                            <div><label class="block text-[10px] font-bold text-slate-400 uppercase">No Registrasi</label><input type="text" id="reg-number-preview" readonly class="w-full bg-slate-50 border p-2 rounded font-mono font-bold text-slate-400"></div>
+                            <div><label class="block text-[10px] font-bold text-slate-400 uppercase">No RM</label><input type="text" name="nomorRm" required class="w-full hc-input p-2 rounded"></div>
+                            <div><label class="block text-[10px] font-bold text-slate-400 uppercase">Nama Lengkap Pasien</label><input type="text" name="namaPasien" required class="w-full hc-input p-2 rounded"></div>
+                            <div><label class="block text-[10px] font-bold text-slate-400 uppercase">Tgl Kunjungan</label><input type="date" name="tglKunjungan" required class="w-full hc-input p-2 rounded"></div>
+                            <div><label class="block text-[10px] font-bold text-slate-400 uppercase">Dokter Pemeriksa</label><select id="dokter-select" name="dokterPemeriksa" class="w-full hc-input p-2 rounded"></select></div>
                         </div>
-                        <div class="space-y-5">
-                            <h3 class="text-sm font-bold text-blue-700 uppercase tracking-wider border-b pb-2">Data Administrasi SPVR</h3>
-                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nomor Surat (SPVR)</label><input type="text" name="noSpvr" required class="w-full hc-input p-2.5 rounded"></div>
+                        <div class="space-y-4">
+                            <h3 class="text-xs font-bold text-blue-600 uppercase border-b pb-1">Administrasi SPVR</h3>
+                            <div><label class="block text-[10px] font-bold text-slate-400 uppercase">Nomor SPVR</label><input type="text" name="noSpvr" required class="w-full hc-input p-2 rounded"></div>
                             <div class="grid grid-cols-2 gap-4">
-                                <div><label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Tgl Surat</label><input type="date" name="tglSpvr" required class="w-full hc-input p-2.5 rounded"></div>
-                                <div><label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Tgl Diterima</label><input type="date" name="tglTerima" required class="w-full hc-input p-2.5 rounded"></div>
+                                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Tgl Surat</label><input type="date" name="tglSpvr" required class="w-full hc-input p-2 rounded"></div>
+                                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Tgl Diterima</label><input type="date" name="tglTerima" required class="w-full hc-input p-2 rounded"></div>
                             </div>
-                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Instansi Pengirim</label><select name="sumberSpvr" class="w-full hc-input p-2.5 rounded"><option>Polres</option><option>Polsek</option><option>Lainnya</option></select></div>
-                            <div class="border-2 border-slate-300 border-dashed rounded-lg p-4 bg-slate-50 hover:bg-white transition">
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2 text-center">Upload Dokumen (PDF)</label>
-                                <input id="file-resume" type="file" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" accept="application/pdf" />
-                            </div>
+                            <div><label class="block text-[10px] font-bold text-slate-400 uppercase">Instansi</label><select name="sumberSpvr" class="w-full hc-input p-2 rounded"><option>Polres</option><option>Polsek</option><option>Lainnya</option></select></div>
+                            <div class="bg-slate-50 p-4 border rounded-lg"><label class="block text-[10px] font-bold text-slate-500 uppercase mb-2">Dokumen SPVR (PDF)</label><input id="file-resume" type="file" class="w-full text-xs" accept="application/pdf" /></div>
                         </div>
                     </div>
-                    <button type="submit" class="w-full bg-blue-700 text-white py-3 rounded-lg font-bold hover:bg-blue-800 shadow-lg shadow-blue-500/30 transition flex items-center justify-center gap-2" id="btn-submit-admin">
-                        <i class="fas fa-save"></i> SIMPAN DATA
-                    </button>
+                    <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold shadow-lg hover:bg-blue-700 transition">SIMPAN DATA KE DATABASE</button>
                 </form>
             </section>
 
-            <!-- VIEW: PEMERIKSAAN MEDIS (EDIT/INPUT/VIEW) -->
+            <!-- Detail Visum / Pemeriksaan -->
             <section id="view-input-medis" class="page-view hidden">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div class="flex justify-between items-center mb-6">
                     <div class="flex items-center gap-4">
-                        <button onclick="nav(currentUser.role === 'Dokter' ? 'dashboard' : 'search')" class="bg-white p-2 rounded border border-slate-300 hover:bg-slate-50 text-slate-600"><i class="fas fa-arrow-left"></i></button>
-                        <h2 class="text-2xl font-bold text-slate-800">Data Visum Pasien</h2>
+                        <button onclick="nav(currentUser.role === 'Dokter' ? 'dashboard' : 'search')" class="bg-white p-2 rounded border hover:bg-slate-100"><i class="fas fa-arrow-left"></i></button>
+                        <h2 class="text-2xl font-bold">Rincian Pasien</h2>
                     </div>
                     <div id="view-status-badge"></div>
                 </div>
-                
-                <div class="hc-card p-6 mb-6 bg-blue-50 border border-blue-100">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><p class="text-xs font-bold text-slate-500 uppercase">Pasien</p><p class="text-xl font-bold text-slate-800" id="medis-nama-pasien">-</p></div>
-                        <div><p class="text-xs font-bold text-slate-500 uppercase">Nomor RM</p><p class="text-xl font-bold text-slate-800 font-mono" id="medis-rm">-</p></div>
-                    </div>
+                <div class="hc-card p-6 mb-8 bg-blue-50 border-blue-100 flex flex-wrap gap-10">
+                    <div><p class="text-[10px] font-bold text-blue-400 uppercase">Pasien</p><p class="text-xl font-bold" id="medis-nama-pasien">-</p></div>
+                    <div><p class="text-[10px] font-bold text-blue-400 uppercase">RM</p><p class="text-xl font-bold font-mono" id="medis-rm">-</p></div>
                     <input type="hidden" id="medis-visum-id">
                 </div>
-
-                <div id="existing-photos-container" class="hidden mb-8">
-                    <h3 class="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-images text-blue-600"></i> Foto Dokumentasi</h3>
-                    <div id="existing-photos-loader" class="hidden text-center py-8 font-bold animate-pulse text-slate-400">
-                        <div class="loader mx-auto mb-2"></div> SEDANG MEMUAT FOTO...
-                    </div>
-                    <div id="existing-photos-list" class="space-y-4"></div>
+                <div id="existing-photos-container" class="hidden mb-10">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fas fa-images text-blue-500"></i> Dokumentasi Tersimpan</h3>
+                    <div id="existing-photos-loader" class="hidden py-10 text-center"><div class="loader mx-auto"></div></div>
+                    <div id="existing-photos-list" class="grid grid-cols-1 gap-6"></div>
                 </div>
-
-                <!-- ADD NEW PHOTO SECTION -->
-                <div id="new-photo-section" class="hc-card p-8 bg-white border-none shadow-sm">
-                    <h3 class="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-plus-circle text-emerald-600"></i> Tambah Foto Baru</h3>
-                    <div class="border-2 border-dashed border-slate-300 bg-slate-50 rounded-xl p-8 text-center mb-6 hover:bg-white hover:border-blue-400 transition cursor-pointer" onclick="document.getElementById('file-foto-multi').click()">
+                <div id="new-photo-section" class="hc-card p-8 shadow-sm">
+                    <h3 class="text-lg font-bold mb-4">Tambahkan Foto Pemeriksaan</h3>
+                    <div class="border-2 border-dashed border-slate-200 rounded-xl p-10 text-center mb-6 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition" onclick="document.getElementById('file-foto-multi').click()">
                         <i class="fas fa-camera text-4xl text-slate-300 mb-2"></i>
-                        <h3 class="font-bold text-slate-600">Klik untuk Pilih Foto</h3>
-                        <p class="text-xs text-slate-400">Support multiple upload</p>
+                        <p class="text-slate-400 font-medium">Klik untuk pilih satu atau banyak foto</p>
                         <input type="file" id="file-foto-multi" multiple accept="image/*" class="hidden" onchange="handleFileSelect(event)">
                     </div>
                     <div id="photo-input-container" class="space-y-4 mb-8"></div>
-                    <button onclick="submitMedicalData()" class="w-full bg-emerald-600 text-white py-3 rounded-lg font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-500/30 transition flex items-center justify-center gap-2" id="btn-submit-medis">
-                        <i class="fas fa-check-circle"></i> SIMPAN PERUBAHAN
-                    </button>
+                    <button onclick="submitMedicalData()" class="w-full bg-emerald-600 text-white py-3 rounded-lg font-bold shadow-lg shadow-emerald-500/20 hover:bg-emerald-700 transition">KONFIRMASI SIMPAN HASIL</button>
                 </div>
             </section>
 
-            <!-- VIEW: SEARCH / DATA PASIEN -->
+            <!-- Data Pasien / Search Table -->
             <section id="view-search" class="page-view hidden">
-                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                    <h2 class="text-2xl font-bold text-slate-800" id="title-search-view">Pencarian Data</h2>
-                    <div class="w-full md:w-auto relative">
-                        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
-                        <input type="text" id="search-input" placeholder="Cari Nama / RM..." class="w-full md:w-80 pl-10 pr-4 py-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none transition" onkeyup="if(event.key === 'Enter') doSearch()">
-                    </div>
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 border-b pb-5">
+                    <h2 class="text-2xl font-bold text-slate-800" id="title-search-view">Data Pasien</h2>
+                    <div class="relative"><i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-300"></i><input type="text" id="search-input" placeholder="Cari..." class="w-full md:w-80 pl-10 pr-4 py-2 border rounded-full focus:ring-2 focus:ring-blue-100 outline-none" onkeyup="if(event.key === 'Enter') doSearch()"></div>
                 </div>
-                
-                <!-- TABLE VIEW FOR ADMIN -->
-                <div id="admin-table-container" class="hidden overflow-x-auto bg-white rounded-xl shadow-sm border border-slate-200">
+                <div id="admin-table-container" class="hidden overflow-x-auto bg-white rounded-xl shadow-sm border">
                     <table class="w-full text-sm text-left">
-                        <thead class="bg-slate-50 text-slate-600 uppercase font-bold text-xs border-b border-slate-200">
+                        <thead class="bg-slate-50 text-[10px] font-bold uppercase text-slate-500 border-b">
                             <tr>
                                 <th class="px-6 py-4 cursor-pointer hover:text-blue-600" onclick="sortPatients('noReg')">No Reg <span id="sort-noReg" class="sort-icon"></span></th>
                                 <th class="px-6 py-4 cursor-pointer hover:text-blue-600" onclick="sortPatients('tgl')">Tanggal <span id="sort-tgl" class="sort-icon"></span></th>
-                                <th class="px-6 py-4 cursor-pointer hover:text-blue-600" onclick="sortPatients('nama')">Nama Pasien <span id="sort-nama" class="sort-icon"></span></th>
+                                <th class="px-6 py-4 cursor-pointer hover:text-blue-600" onclick="sortPatients('nama')">Pasien <span id="sort-nama" class="sort-icon"></span></th>
                                 <th class="px-6 py-4 cursor-pointer hover:text-blue-600" onclick="sortPatients('rm')">RM <span id="sort-rm" class="sort-icon"></span></th>
                                 <th class="px-6 py-4">Dokter</th>
                                 <th class="px-6 py-4">Status</th>
                                 <th class="px-6 py-4 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="patient-table-body" class="text-slate-700 divide-y divide-slate-100"></tbody>
+                        <tbody id="patient-table-body" class="divide-y text-slate-600"></tbody>
                     </table>
                 </div>
-
-                <!-- CARD VIEW FOR USER -->
                 <div id="search-results" class="grid grid-cols-1 gap-4"></div>
             </section>
 
-             <!-- VIEW: USERS (ADMIN ONLY) -->
+             <!-- User Manager -->
             <section id="view-users" class="page-view hidden">
-                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-slate-800">User Manager</h2>
-                    <button onclick="loadUsers()" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-bold border border-blue-200 hover:bg-blue-50 text-sm flex items-center gap-2"><i class="fas fa-sync"></i> Refresh</button>
-                 </div>
-                 <div class="hc-card p-0 bg-white border-none shadow-sm overflow-hidden">
-                    <div id="user-table-body" class="divide-y divide-slate-100"></div>
-                 </div>
+                 <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold">User Manager</h2><button onclick="loadUsers()" class="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-bold border border-blue-100 hover:bg-blue-100 transition text-sm">Refresh List</button></div>
+                 <div class="hc-card p-0 bg-white border-none shadow-sm overflow-hidden divide-y divide-slate-100" id="user-table-body"></div>
             </section>
 
-            <!-- MODAL: EDIT USER -->
-            <div id="edit-user-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-                <div class="bg-white w-full max-w-lg p-8 rounded-2xl shadow-2xl relative animate-[fadeIn_0.2s_ease-out]">
-                    <button onclick="closeEditModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
-                    <h3 class="text-xl font-bold text-slate-800 mb-6 pb-2 border-b border-slate-100">Edit Profil User</h3>
-                    
+            <!-- Modal Edit User -->
+            <div id="edit-user-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+                <div class="bg-white w-full max-w-md p-8 rounded-2xl shadow-2xl relative">
+                    <button onclick="closeEditModal()" class="absolute top-6 right-6 text-slate-300 hover:text-slate-600 transition"><i class="fas fa-times text-lg"></i></button>
+                    <h3 class="text-xl font-bold mb-6 border-b pb-2">Detail Profil User</h3>
                     <form onsubmit="handleUpdateUser(event)" class="space-y-4">
                         <input type="hidden" id="edit-email-target">
-                        <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email (ID)</label><input type="text" id="edit-email-display" disabled class="w-full bg-slate-100 border border-slate-300 px-3 py-2 rounded text-slate-600 font-medium"></div>
-                        <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nama Lengkap</label><input type="text" id="edit-nama" required class="w-full hc-input px-3 py-2 rounded"></div>
-                        <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nomor HP</label><input type="text" id="edit-hp" required class="w-full hc-input px-3 py-2 rounded"></div>
+                        <div><label class="block text-[10px] font-bold uppercase text-slate-400">ID Email</label><input type="text" id="edit-email-display" disabled class="w-full bg-slate-50 p-2 rounded text-slate-500 font-medium border"></div>
+                        <div><label class="block text-[10px] font-bold uppercase text-slate-400">Nama</label><input type="text" id="edit-nama" required class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-100 outline-none"></div>
+                        <div><label class="block text-[10px] font-bold uppercase text-slate-400">No HP</label><input type="text" id="edit-hp" required class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-100 outline-none"></div>
                         <div class="grid grid-cols-2 gap-4">
-                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Role</label><select id="edit-role" class="w-full hc-input px-3 py-2 rounded"><option value="Perawat">Perawat</option><option value="Dokter">Dokter</option><option value="Admin">Admin</option></select></div>
-                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label><select id="edit-status" class="w-full hc-input px-3 py-2 rounded"><option value="Aktif">Aktif</option><option value="Nonaktif">Nonaktif</option></select></div>
+                            <div><label class="block text-[10px] font-bold uppercase text-slate-400">Role</label><select id="edit-role" class="w-full border p-2 rounded"><option value="Perawat">Perawat</option><option value="Dokter">Dokter</option><option value="Admin">Admin</option></select></div>
+                            <div><label class="block text-[10px] font-bold uppercase text-slate-400">Status</label><select id="edit-status" class="w-full border p-2 rounded"><option value="Aktif">Aktif</option><option value="Nonaktif">Nonaktif</option></select></div>
                         </div>
                         <div class="pt-6 flex gap-3">
-                            <button type="button" onclick="closeEditModal()" class="flex-1 py-2.5 font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg">Batal</button>
-                            <button type="submit" id="btn-save-user" class="flex-1 py-2.5 bg-blue-600 text-white font-bold hover:bg-blue-700 rounded-lg shadow-md">Simpan</button>
+                            <button type="button" onclick="closeEditModal()" class="flex-1 py-2.5 rounded-lg bg-slate-100 font-bold text-slate-600">BATAL</button>
+                            <button type="submit" id="btn-save-user" class="flex-1 py-2.5 rounded-lg bg-blue-600 text-white font-bold shadow-lg hover:bg-blue-700 transition">SIMPAN</button>
                         </div>
                     </form>
                 </div>
             </div>
-
         </main>
     </div>
 
-    <!-- LOGIC SCRIPT -->
+    <!-- MAIN APP LOGIC -->
     <script>
-        // ... (Include TSParticles Init Code Here) ...
+        // Init Particles Background
         tsParticles.load("tsparticles", {
             fpsLimit: 60,
             particles: {
                 color: { value: "#ffffff" },
-                links: { color: "#ffffff", distance: 150, enable: true, opacity: 0.2, width: 1 },
-                move: { enable: true, speed: 1.5, direction: "none", random: false, straight: false, outModes: "out" },
-                number: { density: { enable: true, area: 800 }, value: 60 },
-                opacity: { value: 0.3 },
+                links: { color: "#ffffff", distance: 150, enable: true, opacity: 0.1, width: 1 },
+                move: { enable: true, speed: 0.8, direction: "none", random: false, straight: false, outModes: "out" },
+                number: { density: { enable: true, area: 800 }, value: 50 },
+                opacity: { value: 0.2 },
                 shape: { type: "circle" },
                 size: { value: { min: 1, max: 3 } }
             },
-            interactivity: {
-                events: { onHover: { enable: true, mode: "grab" }, onClick: { enable: true, mode: "push" } },
-                modes: { grab: { distance: 140, links: { opacity: 0.5 } } }
-            },
+            interactivity: { events: { onHover: { enable: true, mode: "grab" }, onClick: { enable: false } } },
             detectRetina: true
         });
 
-        // ... (Rest of the application logic from previous correct version) ...
         let currentUser = null;
         let selectedPhotos = []; 
         let currentVisumData = null;
         let currentPatientData = []; 
         let sortState = { field: 'tgl', order: 'desc' }; 
 
+        // --- SESSION MANAGEMENT ---
         window.onload = function() {
             const savedState = localStorage.getItem('visumAppState');
             if (savedState) {
@@ -465,25 +293,20 @@
                 if (state.currentUser) {
                     onLoginSuccess(state.currentUser, false);
                     if(state.currentView) nav(state.currentView);
-                    if(state.currentVisumData && state.currentView === 'input-medis') {
-                        loadVisumDetails(state.currentVisumData.visumId);
-                    }
+                    if(state.currentVisumData && state.currentView === 'input-medis') loadVisumDetails(state.currentVisumData.visumId);
                 }
             }
         };
 
         function saveState() {
-            const state = {
-                currentUser: currentUser,
-                currentView: document.querySelector('.page-view:not(.hidden)').id.replace('view-', ''),
-                currentVisumData: currentVisumData
-            };
+            const state = { currentUser: currentUser, currentView: document.querySelector('.page-view:not(.hidden)').id.replace('view-', ''), currentVisumData: currentVisumData };
             localStorage.setItem('visumAppState', JSON.stringify(state));
         }
 
+        // --- AUTH & LOGIN ---
         function handleCredentialResponse(response) {
             let email = JSON.parse(atob(response.credential.split('.')[1])).email;
-            showToast("Memproses Login...", "info");
+            showToast("Authentikasi...", "info");
             callAPI("login", { token: response.credential, email: email }).then(res => {
                 if (res.status === 'success') {
                     onLoginSuccess(res.user, true);
@@ -491,8 +314,48 @@
                     document.getElementById('reg-email').value = res.email;
                     document.getElementById('login-view').classList.add('hidden');
                     document.getElementById('register-view').classList.remove('hidden');
+                    document.getElementById('register-view').classList.add('flex');
                 } else { showToast(res.message, "error"); }
             });
+        }
+
+        function onLoginSuccess(user, save) {
+            currentUser = user;
+            document.getElementById('login-view').classList.add('hidden');
+            document.getElementById('register-view').classList.add('hidden');
+            document.getElementById('app-view').classList.remove('hidden');
+            document.getElementById('app-view').classList.add('flex');
+            
+            document.getElementById('user-name').innerText = user.nama;
+            document.getElementById('user-role').innerText = user.role;
+            document.getElementById('user-initial').innerText = user.nama.charAt(0);
+
+            const s = (id) => document.getElementById(id).classList.remove('hidden');
+            const h = (id) => document.getElementById(id).classList.add('hidden');
+            s('nav-search');
+            
+            // ROLE BASED UI
+            if (user.role === 'Admin' || user.role === 'Super Admin') {
+                document.getElementById('label-search').innerText = "Data Pasien";
+                document.getElementById('title-search-view').innerText = "Data Pasien & Arsip";
+                document.getElementById('admin-table-container').classList.remove('hidden');
+                document.getElementById('search-results').classList.add('hidden');
+                s('nav-perawat'); s('nav-users'); s('nav-admin-divider'); s('nav-admin-label');
+            } else if (user.role === 'Perawat') {
+                document.getElementById('label-search').innerText = "Data Input Saya";
+                document.getElementById('title-search-view').innerText = "Riwayat Input Saya";
+                document.getElementById('admin-table-container').classList.remove('hidden'); 
+                document.getElementById('search-results').classList.add('hidden');
+                s('nav-perawat'); h('nav-users'); h('nav-admin-divider'); h('nav-admin-label');
+            } else {
+                document.getElementById('label-search').innerText = "Pencarian";
+                document.getElementById('admin-table-container').classList.add('hidden');
+                document.getElementById('search-results').classList.remove('hidden');
+                h('nav-perawat'); h('nav-users'); h('nav-admin-divider'); h('nav-admin-label');
+            }
+
+            loadDoctors(); loadDashboard();
+            if(save) saveState();
         }
 
         async function handleRegister(e) {
@@ -505,49 +368,12 @@
             };
             const res = await callAPI("register", payload);
             if(res.status === 'success') {
-                document.getElementById('register-view').classList.add('hidden');
                 onLoginSuccess(res.user, true);
             } else { showToast(res.message, "error"); }
         }
 
-        function onLoginSuccess(user, save) {
-            currentUser = user;
-            document.getElementById('login-view').classList.add('hidden');
-            document.getElementById('app-view').classList.remove('hidden');
-            document.getElementById('app-view').classList.add('flex');
-            document.getElementById('user-name').innerText = user.nama;
-            document.getElementById('user-role').innerText = user.role;
-            document.getElementById('user-initial').innerText = user.nama.charAt(0);
-
-            const nav = (id) => document.getElementById(id).classList.remove('hidden');
-            nav('nav-search');
-            if (user.role === 'Perawat' || user.role === 'Admin' || user.role === 'Super Admin') nav('nav-perawat');
-            if (user.role === 'Admin' || user.role === 'Super Admin') { nav('nav-users'); nav('nav-admin-divider'); }
-            
-            if (user.role === 'Admin' || user.role === 'Super Admin') {
-                document.getElementById('label-search').innerText = "Data Pasien";
-                document.getElementById('title-search-view').innerText = "Data Pasien & Arsip";
-                document.getElementById('admin-table-container').classList.remove('hidden');
-                document.getElementById('search-results').classList.add('hidden');
-                doSearch(); 
-            } else {
-                document.getElementById('label-search').innerText = "Pencarian";
-                document.getElementById('title-search-view').innerText = "Pencarian Data";
-                document.getElementById('admin-table-container').classList.add('hidden');
-                document.getElementById('search-results').classList.remove('hidden');
-            }
-
-            loadDoctors();
-            loadDashboard();
-            if(save) saveState();
-        }
-
-        async function loadDoctors() {
-            const res = await callAPI("get_doctor_list", {});
-            if(res.status === 'success') populateDoctors(res.dokters);
-        }
-
-        async function loadDashboard() {
+        // --- DASHBOARD & DOCTOR LOGIC ---
+        async function loadDashboard() { 
             const res = await callAPI("get_stats", { userEmail: currentUser.email });
             if(res.status === 'success') {
                 document.getElementById('stat-total').innerText = res.stats.total;
@@ -567,80 +393,129 @@
             const btnHistory = document.getElementById('tab-history');
             if(tab === 'queue') {
                 queuePanel.classList.remove('hidden'); historyPanel.classList.add('hidden');
-                btnQueue.className = "px-6 py-2 rounded-md font-bold text-sm transition tab-active";
-                btnHistory.className = "px-6 py-2 rounded-md font-bold text-sm transition tab-inactive";
+                btnQueue.className = "px-6 py-2 rounded-md font-bold text-xs transition tab-active uppercase";
+                btnHistory.className = "px-6 py-2 rounded-md font-bold text-xs transition tab-inactive uppercase";
             } else {
                 queuePanel.classList.add('hidden'); historyPanel.classList.remove('hidden');
-                btnQueue.className = "px-6 py-2 rounded-md font-bold text-sm transition tab-inactive";
-                btnHistory.className = "px-6 py-2 rounded-md font-bold text-sm transition tab-active";
+                btnQueue.className = "px-6 py-2 rounded-md font-bold text-xs transition tab-inactive uppercase";
+                btnHistory.className = "px-6 py-2 rounded-md font-bold text-xs transition tab-active uppercase";
             }
         }
 
         async function loadDoctorQueue() {
             const listDiv = document.getElementById('doctor-queue-list');
-            listDiv.innerHTML = '<div class="loader"></div>';
+            listDiv.innerHTML = '<div class="loader mx-auto"></div>';
             const res = await callAPI("get_doctor_queue", { userEmail: currentUser.email });
             if(res.status === 'success') {
-                listDiv.innerHTML = '';
-                if(res.queue.length === 0) listDiv.innerHTML = '<p class="text-slate-400 italic text-sm p-4">Tidak ada antrian pasien saat ini.</p>';
-                else {
-                    res.queue.forEach(q => {
-                        const card = document.createElement('div');
-                        card.className = "bg-white border-l-4 border-blue-500 p-4 shadow-sm hover:shadow-md transition flex justify-between items-center rounded-r-lg";
-                        card.innerHTML = `<div><h4 class="font-bold text-lg text-slate-800">${q.nama}</h4><p class="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded inline-block mt-1">RM: ${q.rm}</p></div><button onclick='openMedicalEditor("${q.visumId}")' class="bg-blue-600 text-white px-4 py-2 rounded text-xs font-bold hover:bg-blue-700 transition">PERIKSA</button>`;
-                        listDiv.appendChild(card);
-                    });
-                }
+                listDiv.innerHTML = res.queue.length === 0 ? '<p class="text-slate-400 italic text-sm">Tidak ada antrian.</p>' :
+                    res.queue.map(q => `
+                    <div class="bg-white border p-4 flex justify-between items-center rounded-xl shadow-sm hover:shadow-md transition">
+                        <div><h4 class="font-bold text-slate-800">${q.nama}</h4><p class="text-[10px] text-slate-500 font-bold">RM: ${q.rm}</p></div>
+                        <button onclick='openMedicalEditor("${q.visumId}")' class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-700 transition">PERIKSA</button>
+                    </div>`).join('');
             }
         }
 
         async function loadDoctorHistory() {
             const listDiv = document.getElementById('doctor-history-list');
-            listDiv.innerHTML = '<div class="loader"></div>';
+            listDiv.innerHTML = '<div class="loader mx-auto"></div>';
             const res = await callAPI("get_doctor_history", { userEmail: currentUser.email });
             if(res.status === 'success') {
-                listDiv.innerHTML = '';
-                if(res.history.length === 0) listDiv.innerHTML = '<p class="text-slate-400 italic text-sm p-4">Belum ada riwayat pemeriksaan.</p>';
-                else {
-                    res.history.forEach(q => {
-                        const card = document.createElement('div');
-                        card.className = "bg-white border-l-4 border-emerald-500 p-4 shadow-sm hover:shadow-md transition flex justify-between items-center rounded-r-lg";
-                        card.innerHTML = `<div><h4 class="font-bold text-lg text-slate-800">${q.nama}</h4><p class="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded inline-block mt-1">RM: ${q.rm}</p></div><button onclick='openMedicalEditor("${q.visumId}")' class="bg-emerald-600 text-white px-4 py-2 rounded text-xs font-bold hover:bg-emerald-700 transition">EDIT</button>`;
-                        listDiv.appendChild(card);
-                    });
-                }
+                listDiv.innerHTML = res.history.length === 0 ? '<p class="text-slate-400 italic text-sm">Belum ada riwayat.</p>' :
+                    res.history.map(q => `
+                    <div class="bg-white border p-4 flex justify-between items-center rounded-xl shadow-sm">
+                        <div><h4 class="font-bold text-slate-800">${q.nama}</h4><p class="text-[10px] text-slate-500 font-bold">RM: ${q.rm}</p></div>
+                        <button onclick='openMedicalEditor("${q.visumId}")' class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-700 transition">EDIT</button>
+                    </div>`).join('');
             }
         }
 
+        // --- SEARCH & DATA TABLE ---
+        async function doSearch() {
+            const k = document.getElementById('search-input').value;
+            showToast("Mencari data...", "info");
+            const res = await callAPI('search_patient', {keyword: k, userEmail: currentUser.email});
+            if(!res.data || res.data.length === 0) {
+                const empty = `<div class='p-10 text-center text-slate-400 italic'>Data tidak ditemukan.</div>`;
+                document.getElementById('search-results').innerHTML = empty;
+                document.getElementById('patient-table-body').innerHTML = `<tr><td colspan='7'>${empty}</td></tr>`;
+                return;
+            }
+            currentPatientData = res.data;
+            if(currentUser.role !== 'Dokter') renderTable(currentPatientData); else renderCards(currentPatientData);
+        }
+
+        function sortPatients(field) {
+            if(sortState.field === field) { sortState.order = sortState.order === 'asc' ? 'desc' : 'asc'; } else { sortState.field = field; sortState.order = 'asc'; }
+            document.querySelectorAll('.sort-icon').forEach(el => el.className = 'sort-icon');
+            document.getElementById(`sort-${field}`).className = `sort-icon sort-${sortState.order}`;
+            currentPatientData.sort((a, b) => {
+                let valA = (a[field] || '').toString().toLowerCase();
+                let valB = (b[field] || '').toString().toLowerCase();
+                if(field === 'tgl') { valA = new Date(a[field]); valB = new Date(b[field]); }
+                if (valA < valB) return sortState.order === 'asc' ? -1 : 1;
+                if (valA > valB) return sortState.order === 'asc' ? 1 : -1;
+                return 0;
+            });
+            renderTable(currentPatientData);
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('patient-table-body');
+            tbody.innerHTML = data.map(d => `
+                <tr class="hover:bg-blue-50/50 transition border-b border-slate-100">
+                    <td class="px-6 py-4 font-mono text-xs">${d.noReg}</td>
+                    <td class="px-6 py-4 text-xs">${new Date(d.tgl).toLocaleDateString('id-ID')}</td>
+                    <td class="px-6 py-4 font-bold text-slate-800">${d.nama}</td>
+                    <td class="px-6 py-4 font-mono text-xs">${d.rm}</td>
+                    <td class="px-6 py-4 text-xs">${d.dokter}</td>
+                    <td class="px-6 py-4">
+                        ${d.resume ? `<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-[9px] font-black uppercase">Selesai</span>` : 
+                                     `<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[9px] font-black uppercase">Pending</span>`}
+                    </td>
+                    <td class="px-6 py-4 text-center flex justify-center gap-3">
+                        <button onclick="viewVisumRecord('${d.id}')" class="text-blue-600 hover:text-blue-800" title="Lihat Detail"><i class="fas fa-eye"></i></button>
+                        ${(currentUser.role === 'Super Admin') ? `<button onclick="deleteVisum('${d.id}', '${d.nama}')" class="text-red-400 hover:text-red-600" title="Hapus Permanen"><i class="fas fa-trash-alt"></i></button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderCards(data) {
+            const div = document.getElementById('search-results');
+            div.innerHTML = data.map(d => `
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div>
+                        <div class="font-bold text-lg text-slate-800">${d.nama}</div>
+                        <div class="text-xs text-slate-400 mt-1 flex gap-3"><span>RM: ${d.rm}</span><span>Reg: ${d.noReg}</span></div>
+                    </div>
+                    <button onclick="viewVisumRecord('${d.id}')" class="bg-blue-50 text-blue-600 px-6 py-2 rounded-lg font-bold text-xs hover:bg-blue-600 hover:text-white transition uppercase">Lihat Detail</button>
+                </div>`).join('');
+        }
+
+        // --- MEDICAL EDITOR & VIEW MODE ---
+        async function viewVisumRecord(visumId) { openMedicalEditor(visumId); }
+        
         async function openMedicalEditor(visumId) { 
             nav('input-medis'); 
-            
-            const isAdminView = (currentUser.role === 'Admin' || currentUser.role === 'Super Admin');
-            const uploadSection = document.getElementById('new-photo-section');
-            
-            if (isAdminView) {
-                uploadSection.classList.add('hidden');
-                document.getElementById('view-status-badge').innerHTML = `<span class="bg-blue-100 text-blue-800 px-3 py-1 font-bold rounded-full text-xs border border-blue-200">MODE LIHAT (ADMIN)</span>`;
-            } else {
-                uploadSection.classList.remove('hidden');
-                document.getElementById('view-status-badge').innerHTML = ``;
-            }
-
-            await loadVisumDetails(visumId); 
-        }
-
-        async function viewVisumRecord(visumId) {
-            await openMedicalEditor(visumId);
+            const canModify = (currentUser.role === 'Dokter' || currentUser.role === 'Super Admin');
+            document.getElementById('new-photo-section').classList.toggle('hidden', !canModify);
+            document.getElementById('view-status-badge').innerHTML = !canModify ? `<span class='text-[10px] font-bold bg-blue-50 text-blue-600 px-3 py-1 rounded-full border border-blue-200 uppercase'>Mode Baca Saja</span>` : '';
+            loadVisumDetails(visumId); 
         }
 
         async function loadVisumDetails(visumId) {
-            document.getElementById('medis-nama-pasien').innerText = "Loading...";
-            document.getElementById('existing-photos-container').classList.remove('hidden');
-            document.getElementById('existing-photos-loader').classList.remove('hidden');
-            document.getElementById('existing-photos-list').innerHTML = '';
+            const container = document.getElementById('existing-photos-container');
+            const list = document.getElementById('existing-photos-list');
+            const loader = document.getElementById('existing-photos-loader');
             
+            document.getElementById('medis-nama-pasien').innerText = "Loading...";
+            list.innerHTML = '';
+            container.classList.remove('hidden');
+            loader.classList.remove('hidden');
+
             const res = await callAPI("get_visum_details", { visumId: visumId });
-            document.getElementById('existing-photos-loader').classList.add('hidden');
+            loader.classList.add('hidden');
             
             if(res.status === 'success') {
                 const data = res.data;
@@ -651,98 +526,89 @@
                 document.getElementById('medis-rm').innerText = data.rm;
                 document.getElementById('medis-visum-id').value = data.visumId;
                 
-                const existingDiv = document.getElementById('existing-photos-list');
-                const container = document.getElementById('existing-photos-container');
-                
                 const canEdit = (currentUser.role === 'Dokter' || currentUser.role === 'Super Admin');
 
                 if(res.photos.length > 0) {
-                    container.classList.remove('hidden');
-                    existingDiv.innerHTML = '';
-                    res.photos.forEach(photo => {
-                        let imgSrc = photo.url;
-                        let imgElem = !imgSrc ? `<div class="w-full h-full bg-slate-100 flex items-center justify-center font-bold text-slate-400 text-xs">IMG ERROR</div>` : `<img src="${imgSrc}" class="w-full h-full object-cover">`;
-                        
-                        let actionButtons = '';
-                        if (canEdit) {
-                            actionButtons = `
-                            <div class="flex gap-2 mt-2">
-                                <button onclick="updateCaption('${photo.photoId}')" class="bg-blue-100 text-blue-700 px-3 py-1 text-xs font-bold rounded hover:bg-blue-200 transition">Update Teks</button>
-                                <button onclick="deletePhoto('${photo.photoId}', '${photo.fileId}')" class="bg-red-100 text-red-700 px-3 py-1 text-xs font-bold rounded hover:bg-red-200 transition">Hapus Foto</button>
+                    res.photos.forEach(p => {
+                        const div = document.createElement('div');
+                        div.className = "bg-white border rounded-2xl p-5 flex flex-col md:flex-row gap-6 shadow-sm";
+                        div.innerHTML = `
+                            <div class='w-full md:w-48 aspect-video bg-slate-100 rounded-xl overflow-hidden border'>
+                                <img src='${p.url}' class='w-full h-full object-cover' onerror="this.src='https://placehold.co/400x300?text=Gambar+Gagal'">
+                            </div>
+                            <div class='flex-1'>
+                                <label class='block text-[10px] font-bold text-slate-400 uppercase mb-1'>Keterangan</label>
+                                <textarea id="caption-${p.photoId}" class="w-full bg-slate-50 border p-3 rounded-lg text-sm h-24 focus:ring-2 focus:ring-blue-100 outline-none" ${!canEdit ? 'disabled' : ''}>${p.caption}</textarea>
+                                ${canEdit ? `
+                                <div class="flex gap-2 mt-3">
+                                    <button onclick="updateCaption('${p.photoId}')" class="text-[10px] font-bold bg-blue-50 text-blue-600 px-4 py-1.5 rounded hover:bg-blue-600 hover:text-white transition">UPDATE TEKS</button>
+                                    <button onclick="deletePhoto('${p.photoId}', '${p.fileId}')" class="text-[10px] font-bold bg-red-50 text-red-600 px-4 py-1.5 rounded hover:bg-red-600 hover:text-white transition">HAPUS FOTO</button>
+                                </div>` : ''}
                             </div>`;
-                        }
-
-                        const el = document.createElement('div');
-                        el.className = "bg-white border border-slate-200 p-4 flex flex-col md:flex-row gap-4 items-start rounded-xl shadow-sm";
-                        el.innerHTML = `
-                            <div class="w-full md:w-1/3 aspect-video bg-slate-50 overflow-hidden rounded-lg border border-slate-100">${imgElem}</div>
-                            <div class="w-full md:w-2/3">
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Keterangan Foto</label>
-                                <textarea id="caption-${photo.photoId}" class="w-full bg-slate-50 border border-slate-200 rounded p-2 text-sm text-slate-700 h-24 focus:outline-none focus:ring-2 focus:ring-blue-100" ${!canEdit ? 'disabled' : ''}>${photo.caption}</textarea>
-                                ${actionButtons}
-                            </div>`;
-                        existingDiv.appendChild(el);
+                        list.appendChild(div);
                     });
-                } else { 
-                    container.classList.add('hidden'); 
-                }
-                selectedPhotos = []; 
-                renderPhotoInputs();
-            } else { 
-                showToast("Gagal load data", "error"); 
-                nav('dashboard'); 
+                } else { list.innerHTML = '<p class="text-center text-slate-400 py-10 italic">Belum ada foto dokumentasi.</p>'; }
             }
         }
 
+        // --- PENDING ACTION HANDLERS ---
         async function updateCaption(photoId) {
             const newCap = document.getElementById('caption-'+photoId).value;
             const res = await callAPI("update_caption", { photoId: photoId, caption: newCap, userEmail: currentUser.email });
-            if(res.status === 'success') showToast("Keterangan diupdate", "success"); else showToast("Gagal update", "error");
+            if(res.status === 'success') showToast("Berhasil diupdate", "success"); else showToast("Gagal update", "error");
         }
 
         async function deletePhoto(photoId, fileId) {
-            if(!confirm("Yakin hapus foto ini secara permanen?")) return;
+            if(!confirm("Hapus foto ini?")) return;
             const res = await callAPI("delete_photo", { photoId: photoId, fileId: fileId, userEmail: currentUser.email });
-            if(res.status === 'success') { showToast("Foto dihapus", "success"); loadVisumDetails(currentVisumData.visumId); } else showToast("Gagal hapus", "error");
+            if(res.status === 'success') loadVisumDetails(currentVisumData.visumId);
         }
 
+        async function deleteVisum(visumId, patientName) {
+            if (!confirm(`HAPUS PERMANEN DATA: ${patientName}?\nTindakan ini tidak dapat dibatalkan.`)) return;
+            const res = await callAPI('delete_visum_data', { visumId: visumId, userEmail: currentUser.email });
+            if (res.status === 'success') { showToast("Data Dihapus", "success"); doSearch(); }
+        }
+
+        // --- FILE UPLOAD LOGIC ---
         function handleFileSelect(event) {
             const files = Array.from(event.target.files);
-            if(files.length === 0) return;
             files.forEach(file => {
                 const reader = new FileReader();
-                reader.onload = (e) => { selectedPhotos.push({ file: file, previewUrl: e.target.result, caption: "" }); renderPhotoInputs(); };
+                reader.onload = (e) => { 
+                    selectedPhotos.push({ file: file, previewUrl: e.target.result, caption: "" }); 
+                    renderPhotoInputs(); 
+                };
                 reader.readAsDataURL(file);
             });
         }
 
         function renderPhotoInputs() {
             const container = document.getElementById('photo-input-container');
-            container.innerHTML = '';
-            selectedPhotos.forEach((item, index) => {
-                const div = document.createElement('div');
-                div.className = "bg-white border border-slate-200 p-4 flex flex-col md:flex-row gap-4 items-start rounded-xl";
-                div.innerHTML = `<div class="w-full md:w-1/3 aspect-video bg-slate-50 overflow-hidden rounded-lg border border-slate-100 relative group"><img src="${item.previewUrl}" class="w-full h-full object-cover"><button onclick="removePhoto(${index})" class="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs shadow-md hover:bg-red-600 transition">✕</button></div><div class="w-full md:w-2/3"><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Keterangan Foto Baru</label><textarea oninput="updateNewCaption(${index}, this.value)" class="w-full bg-slate-50 border border-slate-200 rounded p-2 text-sm text-slate-700 h-24 focus:outline-none focus:ring-2 focus:ring-blue-100" placeholder="Ketik keterangan...">${item.caption}</textarea></div>`;
-                container.appendChild(div);
-            });
+            container.innerHTML = selectedPhotos.map((p, i) => `
+                <div class="bg-white border rounded-xl p-4 flex gap-4 items-center">
+                    <div class="w-20 h-20 rounded-lg overflow-hidden border"><img src="${p.previewUrl}" class="w-full h-full object-cover"></div>
+                    <div class="flex-1"><input type="text" oninput="selectedPhotos[${i}].caption=this.value" placeholder="Beri keterangan..." class="w-full bg-slate-50 border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-blue-100"></div>
+                    <button onclick="selectedPhotos.splice(${i}, 1); renderPhotoInputs();" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
+                </div>`).join('');
         }
 
-        function removePhoto(index) { selectedPhotos.splice(index, 1); renderPhotoInputs(); }
-        function updateNewCaption(index, val) { selectedPhotos[index].caption = val; }
-
         async function submitMedicalData() {
-            if(selectedPhotos.length === 0 && document.getElementById('existing-photos-container').classList.contains('hidden')) return showToast("Tidak ada data untuk disimpan.", "error");
-            if(selectedPhotos.length > 0) {
-                const btn = document.getElementById('btn-submit-medis'); btn.disabled = true; btn.innerHTML = "MENGOMPRES & UPLOAD...";
-                const processedPhotos = await Promise.all(selectedPhotos.map(async (p) => {
-                    const compressedData = await compressImage(p.file);
-                    return { data: compressedData, mimeType: 'image/jpeg', caption: p.caption };
-                }));
-                const payload = { visumId: currentVisumData.visumId, nomorRm: currentVisumData.rm, photos: processedPhotos };
-                const res = await callAPI("save_medical_data_v2", { payload: payload, userEmail: currentUser.email });
-                if(res.status === 'success') { showToast("Tersimpan!", "success"); loadVisumDetails(currentVisumData.visumId); } else showToast("Gagal: " + res.message, "error");
-                btn.disabled = false; btn.innerHTML = "SIMPAN PERUBAHAN";
-            } else { showToast("Perubahan foto lama sudah tersimpan langsung.", "info"); }
+            if(selectedPhotos.length === 0) return showToast("Pilih foto terlebih dahulu.", "error");
+            const btn = document.getElementById('btn-submit-medis'); btn.disabled = true; btn.innerHTML = "Mengunggah...";
+            
+            const processed = await Promise.all(selectedPhotos.map(async (p) => {
+                const compressed = await compressImage(p.file);
+                return { data: compressed, mimeType: 'image/jpeg', caption: p.caption };
+            }));
+
+            const res = await callAPI("save_medical_data_v2", { 
+                payload: { visumId: currentVisumData.visumId, nomorRm: currentVisumData.rm, photos: processed }, 
+                userEmail: currentUser.email 
+            });
+
+            if(res.status === 'success') { showToast("Berhasil disimpan", "success"); selectedPhotos = []; renderPhotoInputs(); loadVisumDetails(currentVisumData.visumId); }
+            btn.disabled = false; btn.innerHTML = "SIMPAN PERUBAHAN";
         }
 
         function compressImage(file) {
@@ -751,184 +617,106 @@
                 reader.onload = (ev) => {
                     const img = new Image(); img.src = ev.target.result;
                     img.onload = () => {
-                        const canvas = document.createElement('canvas'); const maxWidth = 1024; const scale = maxWidth / img.width; const w = (img.width > maxWidth) ? maxWidth : img.width; const h = (img.width > maxWidth) ? img.height * scale : img.height; canvas.width = w; canvas.height = h; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, w, h); resolve(canvas.toDataURL('image/jpeg', 0.7).split(',')[1]);
+                        const canvas = document.createElement('canvas'); 
+                        const maxWidth = 1024; const scale = maxWidth / img.width;
+                        canvas.width = Math.min(img.width, maxWidth); canvas.height = img.height * Math.min(1, scale);
+                        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.7).split(',')[1]);
                     };
                 };
             });
         }
 
-        function nav(id) { 
-            document.querySelectorAll('.page-view').forEach(e => e.classList.add('hidden')); 
-            document.getElementById('view-'+id).classList.remove('hidden'); 
-            saveState(); 
-            if(id === 'input-admin') fetchNextRegNumber();
-        }
-
-        async function fetchNextRegNumber() {
-            document.getElementById('reg-number-preview').value = "Mengambil data...";
-            const res = await callAPI("get_next_reg_number", {});
-            if(res.status === 'success') document.getElementById('reg-number-preview').value = res.nextNumber; else document.getElementById('reg-number-preview').value = "Error";
-        }
-
-        async function callAPI(a, d) {
-            try { return await (await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: a, ...d }) })).json(); }
-            catch (e) { return { status: "error", message: "Koneksi Gagal" }; }
-        }
-        function showToast(m, t) { const el = document.getElementById('toast'); document.getElementById('toast-message').innerText = m; el.classList.remove('translate-x-full'); setTimeout(() => el.classList.add('translate-x-full'), 3000); }
-        function populateDoctors(l) { document.getElementById('dokter-select').innerHTML = "<option>Pilih Dokter...</option>" + (l||[]).map(d=>`<option>${d}</option>`).join(''); }
-        function logout() { localStorage.removeItem('visumAppState'); location.reload(); }
-        
-        async function handleFormAdmin(e) {
-            e.preventDefault(); const btn = document.getElementById('btn-submit-admin'); btn.disabled=true; btn.innerHTML="MEMPROSES...";
-            const formData = new FormData(e.target); const payload = Object.fromEntries(formData.entries());
-            const file = document.getElementById('file-resume').files[0];
-            const send = async (p) => {
-                const res = await callAPI('save_visum_admin', { payload: p, userEmail: currentUser.email });
-                if(res.status==='success') { showToast("TERSIMPAN","success"); e.target.reset(); fetchNextRegNumber(); } else showToast(res.message,"error");
-                btn.disabled=false; btn.innerHTML="SIMPAN DATA";
-            };
-            if(file) { const r = new FileReader(); r.onload=()=>{ payload.fileResumeData=r.result.split(',')[1]; payload.fileResumeName=file.name; send(payload); }; r.readAsDataURL(file); } else send(payload);
-        }
-        
-        async function doSearch() {
-            const k = document.getElementById('search-input').value;
-            const isAdmin = (currentUser.role === 'Admin' || currentUser.role === 'Super Admin');
-            
-            const res = await callAPI('search_patient', {keyword: k, userEmail: currentUser.email});
-            
-            if(!res.data || res.data.length === 0) {
-                const emptyMsg = `<div class="text-center p-8 text-slate-400 bg-slate-50 rounded-lg border border-dashed border-slate-300 italic">Data tidak ditemukan.</div>`;
-                document.getElementById('search-results').innerHTML = emptyMsg;
-                document.getElementById('patient-table-body').innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-400 italic">Data tidak ditemukan.</td></tr>`;
-                return;
-            }
-
-            currentPatientData = res.data;
-            if(isAdmin) renderTable(currentPatientData); else renderCards(currentPatientData);
-        }
-
-        function sortPatients(field) {
-            if(sortState.field === field) { sortState.order = sortState.order === 'asc' ? 'desc' : 'asc'; } else { sortState.field = field; sortState.order = 'asc'; }
-            document.querySelectorAll('.sort-icon').forEach(el => el.className = 'sort-icon');
-            document.getElementById(`sort-${field}`).className = `sort-icon sort-${sortState.order}`;
-            currentPatientData.sort((a, b) => {
-                let valA = a[field] || ''; let valB = b[field] || '';
-                if(field === 'tgl') { valA = new Date(valA).getTime(); valB = new Date(valB).getTime(); } else { valA = valA.toString().toLowerCase(); valB = valB.toString().toLowerCase(); }
-                if (valA < valB) return sortState.order === 'asc' ? -1 : 1; if (valA > valB) return sortState.order === 'asc' ? 1 : -1; return 0;
-            });
-            renderTable(currentPatientData);
-        }
-
-        function renderTable(data) {
-            const tbody = document.getElementById('patient-table-body');
-            tbody.innerHTML = data.map(d => `
-                <tr class="hover:bg-blue-50 border-b border-slate-100 transition">
-                    <td class="px-6 py-4 font-mono text-slate-600">${d.noReg || '-'}</td>
-                    <td class="px-6 py-4 text-slate-600">${new Date(d.tgl).toLocaleDateString()}</td>
-                    <td class="px-6 py-4 font-bold text-slate-800">${d.nama}</td>
-                    <td class="px-6 py-4 font-mono text-slate-500">${d.rm}</td>
-                    <td class="px-6 py-4 text-slate-600">${d.dokter}</td>
-                    <td class="px-6 py-4">
-                        ${d.resume ? 
-                            `<span class="text-emerald-700 bg-emerald-100 px-2 py-1 text-xs font-bold rounded-full border border-emerald-200"><i class="fas fa-check"></i> Selesai</span>` : 
-                            `<span class="text-amber-700 bg-amber-100 px-2 py-1 text-xs font-bold rounded-full border border-amber-200"><i class="fas fa-clock"></i> Pending</span>`
-                        }
-                    </td>
-                    <td class="px-6 py-4 text-center flex justify-center gap-2">
-                        <button onclick="viewVisumRecord('${d.id}')" class="text-xs bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 font-bold transition shadow-sm">
-                            <i class="fas fa-eye"></i> Lihat
-                        </button>
-                        ${(currentUser.role === 'Super Admin') ? 
-                            `<button onclick="deleteVisum('${d.id}', '${d.nama}')" class="text-xs bg-red-100 text-red-600 px-3 py-1.5 rounded hover:bg-red-200 font-bold transition">
-                                <i class="fas fa-trash-alt"></i> Hapus
-                            </button>` : ''
-                        }
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function renderCards(data) {
-            const div = document.getElementById('search-results');
-            div.innerHTML = data.map(d => `
-                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div>
-                        <div class="font-bold text-lg text-slate-800">${d.nama}</div>
-                        <div class="text-xs font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded inline-block mt-1">RM: ${d.rm}</div>
-                        <div class="text-xs text-slate-400 mt-1 flex items-center gap-2"><i class="far fa-calendar-alt"></i> ${new Date(d.tgl).toLocaleDateString()} &bull; <i class="fas fa-user-md"></i> ${d.dokter}</div>
-                    </div>
-                    <div class="text-right w-full md:w-auto">
-                        ${d.resume ? 
-                            `<span class="text-emerald-700 bg-emerald-100 px-3 py-1 text-xs font-bold rounded-full"><i class="fas fa-check"></i> Selesai</span>` : 
-                            `<span class="text-amber-700 bg-amber-100 px-3 py-1 text-xs font-bold rounded-full"><i class="fas fa-clock"></i> Pending</span>`
-                        }
-                    </div>
-                </div>`).join('');
-        }
-
-        async function deleteVisum(visumId, patientName) {
-            if (!confirm(`PERINGATAN KERAS!\n\nAnda akan menghapus permanen data pasien:\n${patientName}\n\n- Data Database HILANG\n- Folder Drive HILANG\n- Foto HILANG\n\nTindakan ini TIDAK BISA DIBATALKAN. Lanjutkan?`)) return;
-            const res = await callAPI('delete_visum_data', { visumId: visumId, userEmail: currentUser.email });
-            if (res.status === 'success') { showToast("DATA DIHAPUS PERMANEN", "success"); doSearch(); } else { showToast("GAGAL: " + res.message, "error"); }
-        }
-        
+        // --- USER MANAGEMENT UI ---
         async function loadUsers() {
              nav('users'); 
              const tbody = document.getElementById('user-table-body');
-             tbody.innerHTML = '<div class="p-8 text-center text-slate-400"><div class="loader mx-auto mb-2"></div> Memuat data...</div>';
+             tbody.innerHTML = '<div class="p-10 text-center"><div class="loader mx-auto"></div></div>';
              const res = await callAPI("get_users", {adminEmail:currentUser.email});
              if(res.status === 'success') {
                  tbody.innerHTML = res.users.map(u => `
-                    <div class="p-4 flex justify-between items-center hover:bg-slate-50 transition group">
+                    <div class="p-5 flex justify-between items-center hover:bg-slate-50 transition">
                         <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold">${u.nama.charAt(0)}</div>
+                            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-400">${u.nama.charAt(0)}</div>
                             <div>
                                 <div class="font-bold text-slate-800">${u.nama}</div>
-                                <div class="text-xs text-slate-500">${u.email}</div>
-                                <div class="flex gap-2 mt-1">
-                                    <span class="text-[10px] font-bold bg-blue-50 text-blue-600 px-1.5 rounded border border-blue-100 uppercase">${u.role}</span>
-                                    <span class="text-[10px] font-bold text-slate-400"><i class="fas fa-phone"></i> ${u.noHp}</span>
-                                </div>
+                                <div class="text-[10px] text-slate-400 flex gap-2"><span>${u.email}</span><span>•</span><span>${u.noHp}</span></div>
+                                <span class="inline-block mt-1 bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[9px] font-black uppercase border border-blue-100">${u.role}</span>
                             </div>
                         </div>
-                        <div class="text-right flex flex-col gap-2 items-end">
-                            <span class="${u.status==='Aktif'?'text-emerald-600':'text-red-500'} font-bold text-xs flex items-center gap-1"><i class="fas fa-circle text-[6px]"></i> ${u.status}</span>
-                            ${(u.role !== 'Super Admin' && currentUser.email !== u.email) ? 
-                                `<button onclick='openEditUserModal(${JSON.stringify(u)})' class="text-xs font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-1 rounded transition">Edit</button>` : ''
-                            }
+                        <div class="text-right">
+                            <div class="text-[10px] font-bold ${u.status==='Aktif'?'text-emerald-500':'text-red-400'} mb-2 uppercase">${u.status}</div>
+                            ${(u.role !== 'Super Admin' && currentUser.email !== u.email) ? `<button onclick='openEditUserModal(${JSON.stringify(u)})' class="bg-slate-900 text-white px-4 py-1 rounded-lg text-[10px] font-bold hover:bg-blue-600 transition">EDIT</button>` : ''}
                         </div>
                     </div>`).join('');
-             } else { tbody.innerHTML = `<div class="p-4 text-red-500 font-bold text-center">Error: ${res.message}</div>`; }
+             }
         }
 
-        function openEditUserModal(user) {
-            document.getElementById('edit-email-display').value = user.email;
-            document.getElementById('edit-email-target').value = user.email;
-            document.getElementById('edit-nama').value = user.nama;
-            document.getElementById('edit-hp').value = user.noHp;
-            document.getElementById('edit-role').value = user.role;
-            document.getElementById('edit-status').value = user.status;
+        function openEditUserModal(u) {
+            document.getElementById('edit-email-display').value = u.email;
+            document.getElementById('edit-email-target').value = u.email;
+            document.getElementById('edit-nama').value = u.nama;
+            document.getElementById('edit-hp').value = u.noHp;
+            document.getElementById('edit-role').value = u.role;
+            document.getElementById('edit-status').value = u.status;
             document.getElementById('edit-user-modal').classList.remove('hidden');
             document.getElementById('edit-user-modal').classList.add('flex');
         }
 
-        function closeEditModal() {
-            document.getElementById('edit-user-modal').classList.add('hidden');
-            document.getElementById('edit-user-modal').classList.remove('flex');
-        }
+        function closeEditModal() { document.getElementById('edit-user-modal').classList.add('hidden'); }
 
         async function handleUpdateUser(e) {
             e.preventDefault();
-            const btn = document.getElementById('btn-save-user');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = "Menyimpan...";
-            btn.disabled = true;
-            const targetEmail = document.getElementById('edit-email-target').value;
-            const newData = { nama: document.getElementById('edit-nama').value, noHp: document.getElementById('edit-hp').value, role: document.getElementById('edit-role').value, status: document.getElementById('edit-status').value };
-            const res = await callAPI("update_user_profile", { adminEmail: currentUser.email, targetEmail: targetEmail, newData: newData });
-            if (res.status === 'success') { showToast("Profil User Diperbarui", "success"); closeEditModal(); loadUsers(); } else { showToast("Gagal: " + res.message, "error"); }
-            btn.innerHTML = originalText; btn.disabled = false;
+            const btn = document.getElementById('btn-save-user'); btn.disabled = true; btn.innerHTML = "...";
+            const res = await callAPI("update_user_profile", { 
+                adminEmail: currentUser.email, targetEmail: document.getElementById('edit-email-target').value,
+                newData: { nama: document.getElementById('edit-nama').value, noHp: document.getElementById('edit-hp').value, role: document.getElementById('edit-role').value, status: document.getElementById('edit-status').value }
+            });
+            if (res.status === 'success') { showToast("Berhasil", "success"); closeEditModal(); loadUsers(); } else { showToast(res.message, "error"); }
+            btn.disabled = false; btn.innerHTML = "SIMPAN";
         }
+
+        // --- CORE UTILS ---
+        function nav(id) { 
+            document.querySelectorAll('.page-view').forEach(e => e.classList.add('hidden')); 
+            document.getElementById('view-'+id).classList.remove('hidden'); 
+            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('bg-slate-800', 'text-blue-400'));
+            saveState(); 
+            if(id === 'input-admin') fetchNextRegNumber(); 
+            if(id === 'search') doSearch(); 
+        }
+
+        async function fetchNextRegNumber() { 
+            const res = await callAPI("get_next_reg_number", {}); 
+            document.getElementById('reg-number-preview').value = res.nextNumber || "Error"; 
+        }
+
+        async function callAPI(a, d) { 
+            try { return await (await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: a, ...d }) })).json(); } 
+            catch (e) { return { status: "error", message: "Koneksi Gagal" }; } 
+        }
+
+        function showToast(m, t) { 
+            const el = document.getElementById('toast'); 
+            document.getElementById('toast-message').innerText = m; 
+            el.classList.remove('translate-x-full'); 
+            setTimeout(() => el.classList.add('translate-x-full'), 3000); 
+        }
+
+        function populateDoctors(l) { 
+            document.getElementById('dokter-select').innerHTML = "<option value=''>Pilih Dokter...</option>" + (l||[]).map(d=>`<option>${d}</option>`).join(''); 
+        }
+
+        async function loadDoctors() { 
+            const res = await callAPI("get_doctor_list", {}); 
+            if(res.status === 'success') populateDoctors(res.dokters); 
+        }
+
+        function logout() { 
+            localStorage.removeItem('visumAppState'); 
+            location.reload(); 
+        }
+
     </script>
 </body>
 </html>
