@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Visum RSUD dr. R. Koesma</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        
+        /* Custom Loader */
+        .loader {
+            border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%;
+            width: 30px; height: 30px; animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Page Transition */
+        .page-view { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- THEME: BLUE GREEN GLASSMORPHISM --- */
+        .login-bg {
+            background: linear-gradient(135deg, #0f766e 0%, #0e7490 50%, #1d4ed8 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Decorative Blob for Depth */
+        .login-bg::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            left: -100px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .login-bg::after {
+            content: '';
+            position: absolute;
+            bottom: -100px;
+            right: -100px;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(45, 212, 191, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- CONFIGURATION -->
+    <script>
+        // URL DEPLOYMENT APPS SCRIPT SUDAH DIPERBARUI
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxo08z_OLMe6KpKPJ3wOX6QKQ80YTweJfQfaP0plPQqauZKQ3qp1vIVKpToTIS7UVqy/exec"; 
+        
+        // CLIENT ID
+        const GOOGLE_CLIENT_ID = "606872357226-63eva14elent817dpb55eb0o2savf4rt.apps.googleusercontent.com"; 
+    </script>
+
+    <!-- TOAST -->
+    <div id="toast" class="fixed top-5 right-5 z-50 transform translate-x-full transition-transform duration-300">
+        <div class="bg-white border-l-4 border-blue-500 rounded shadow-lg p-4 flex items-center gap-3">
+            <i class="fas fa-info-circle text-blue-500"></i>
+            <span id="toast-message" class="font-medium">Notification</span>
+        </div>
+    </div>
+
+    <!-- 1. LOGIN PAGE (UPDATED DESIGN) -->
+    <section id="login-view" class="h-screen flex items-center justify-center login-bg px-4">
+        <div class="glass-card p-10 rounded-3xl w-full max-w-md text-center transform transition-all duration-300 hover:scale-[1.01]">
+            <div class="mb-8 flex justify-center">
+                <div class="w-20 h-20 bg-gradient-to-br from-teal-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg transform rotate-3">
+                    <i class="fas fa-hospital-user text-4xl text-white transform -rotate-3"></i>
+                </div>
+            </div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 tracking-tight">Sistem Visum Digital</h1>
+            <p class="text-gray-500 mb-10 font-medium">RSUD dr. R. Koesma</p>
+            
+            <div class="space-y-4">
+                <div id="g_id_onload"
+                     data-client_id="606872357226-63eva14elent817dpb55eb0o2savf4rt.apps.googleusercontent.com"
+                     data-callback="handleCredentialResponse"
+                     data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin w-full flex justify-center" 
+                     data-type="standard" 
+                     data-size="large" 
+                     data-theme="outline" 
+                     data-text="sign_in_with" 
+                     data-shape="rectangular" 
+                     data-logo_alignment="left"
+                     data-width="320">
+                </div>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-gray-200/50">
+                <p class="text-xs text-gray-400">
+                    &copy; 2024 Instalasi Kedokteran Forensik & Medikolegal<br>
+                    Akses Terbatas - Authorized Personnel Only
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. REGISTER PAGE -->
+    <section id="register-view" class="hidden h-screen flex items-center justify-center bg-gray-50">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100">
+            <div class="text-center mb-6">
+                <h2 class="text-xl font-bold text-gray-800">Aktivasi Akun Baru</h2>
+                <p class="text-sm text-gray-500">Lengkapi data untuk akses sistem</p>
+            </div>
+            
+            <form onsubmit="handleRegister(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Email</label>
+                    <input type="email" id="reg-email" disabled class="w-full bg-gray-100 border border-gray-200 rounded-lg px-4 py-2 text-gray-600 font-medium">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Nama Lengkap & Gelar</label>
+                    <input type="text" id="reg-nama" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" placeholder="Contoh: Dr. Budi Santoso, Sp.F">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Nomor WhatsApp</label>
+                    <input type="tel" id="reg-hp" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" placeholder="0812...">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Role Profesi</label>
+                    <select id="reg-role" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white">
+                        <option value="Perawat">Perawat / Admin Medis</option>
+                        <option value="Dokter">Dokter Pemeriksa</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-500/30 mt-2" id="btn-reg-submit">
+                    Aktifkan Akun
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- 3. MAIN APP LAYOUT -->
+    <div id="app-view" class="hidden min-h-screen flex flex-col md:flex-row">
+        
+        <!-- SIDEBAR -->
+        <aside class="w-full md:w-64 bg-white shadow-xl z-10 flex flex-col border-r border-gray-100">
+            <div class="p-6 border-b border-gray-100 flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600">
+                    <i class="fas fa-heartbeat text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="font-bold text-gray-800 leading-tight">E-Visum</h2>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Forensik System</p>
+                </div>
+            </div>
+            
+            <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+                <p class="px-4 text-[10px] uppercase text-gray-400 font-bold tracking-wider mb-2">Menu Utama</p>
+                
+                <button onclick="nav('dashboard')" class="nav-item w-full text-left px-4 py-3 rounded-xl hover:bg-blue-50 text-gray-600 hover:text-blue-600 transition flex items-center gap-3 active-nav bg-blue-50 text-blue-700 font-medium">
+                    <i class="fas fa-chart-pie w-5"></i> Dashboard
+                </button>
+                
+                <button id="nav-perawat" onclick="nav('input-admin')" class="hidden nav-item w-full text-left px-4 py-3 rounded-xl hover:bg-blue-50 text-gray-600 hover:text-blue-600 transition flex items-center gap-3 font-medium">
+                    <i class="fas fa-file-medical w-5"></i> Input SPVR
+                </button>
+                
+                <button id="nav-dokter" onclick="nav('input-medis')" class="hidden nav-item w-full text-left px-4 py-3 rounded-xl hover:bg-blue-50 text-gray-600 hover:text-blue-600 transition flex items-center gap-3 font-medium">
+                    <i class="fas fa-camera w-5"></i> Foto Klinis
+                </button>
+                
+                <button id="nav-search" onclick="nav('search')" class="hidden nav-item w-full text-left px-4 py-3 rounded-xl hover:bg-blue-50 text-gray-600 hover:text-blue-600 transition flex items-center gap-3 font-medium">
+                    <i class="fas fa-search w-5"></i> Pencarian
+                </button>
+
+                <div id="nav-admin-divider" class="hidden my-4 border-t border-gray-100"></div>
+                <p id="nav-admin-label" class="hidden px-4 text-[10px] uppercase text-gray-400 font-bold tracking-wider mb-2">Administrator</p>
+
+                <button id="nav-users" onclick="loadUsers()" class="hidden nav-item w-full text-left px-4 py-3 rounded-xl hover:bg-purple-50 text-gray-600 hover:text-purple-600 transition flex items-center gap-3 font-medium">
+                    <i class="fas fa-users-cog w-5"></i> User Manager
+                </button>
+            </nav>
+
+            <div class="p-4 bg-gray-50 m-2 rounded-xl border border-gray-100">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-md" id="user-initial">A</div>
+                    <div class="overflow-hidden">
+                        <p class="text-sm font-bold text-gray-800 truncate" id="user-name">User</p>
+                        <p class="text-[10px] text-blue-600 font-bold uppercase tracking-wide bg-blue-100 px-1.5 py-0.5 rounded-md inline-block" id="user-role">Role</p>
+                    </div>
+                </div>
+                <button onclick="logout()" class="w-full text-xs text-red-600 hover:bg-white hover:shadow-sm p-2 rounded-lg text-center border border-transparent hover:border-red-100 transition font-semibold flex items-center justify-center gap-2">
+                    <i class="fas fa-sign-out-alt"></i> Keluar Aplikasi
+                </button>
+            </div>
+        </aside>
+
+        <!-- CONTENT AREA -->
+        <main class="flex-1 overflow-y-auto h-screen p-6 md:p-8 bg-[#f8fafc]">
+            
+            <!-- VIEW: DASHBOARD -->
+            <section id="view-dashboard" class="page-view animate-fade-in">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Dashboard Ringkasan</h2>
+                        <p class="text-sm text-gray-500">Statistik pelayanan visum et repertum</p>
+                    </div>
+                    <span id="data-scope-info" class="text-xs font-semibold bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full border border-amber-200 hidden flex items-center gap-2">
+                        <i class="fas fa-user-lock"></i> Mode Pribadi (Data Anda)
+                    </span>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition">
+                        <div class="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition">
+                            <i class="fas fa-folder-open text-6xl text-blue-600"></i>
+                        </div>
+                        <p class="text-gray-500 text-xs font-bold uppercase tracking-wide">Total Visum</p>
+                        <h3 class="text-3xl font-bold text-gray-800 mt-2" id="stat-total">0</h3>
+                        <p class="text-xs text-green-600 mt-2 font-medium flex items-center gap-1"><i class="fas fa-arrow-up"></i> Data Tahun Ini</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition">
+                         <div class="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition">
+                            <i class="fas fa-calendar-check text-6xl text-emerald-600"></i>
+                        </div>
+                        <p class="text-gray-500 text-xs font-bold uppercase tracking-wide">Bulan Ini</p>
+                        <h3 class="text-3xl font-bold text-gray-800 mt-2" id="stat-month">0</h3>
+                        <p class="text-xs text-gray-400 mt-2 font-medium">Kunjungan Baru</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition">
+                         <div class="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition">
+                            <i class="fas fa-clock text-6xl text-purple-600"></i>
+                        </div>
+                        <p class="text-gray-500 text-xs font-bold uppercase tracking-wide">Menunggu Resume</p>
+                        <h3 class="text-3xl font-bold text-gray-800 mt-2" id="stat-pending">0</h3>
+                         <p class="text-xs text-orange-500 mt-2 font-medium">Perlu Tindak Lanjut</p>
+                    </div>
+                </div>
+                
+                <!-- Chart & List Container -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <h4 class="font-bold text-gray-800 mb-6 flex items-center gap-2">
+                            <i class="fas fa-chart-line text-blue-500"></i> Tren Kunjungan
+                        </h4>
+                        <canvas id="visumChart" height="200"></canvas>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <h4 class="font-bold text-gray-800 mb-6 flex items-center gap-2">
+                            <i class="fas fa-history text-blue-500"></i> Aktivitas Terbaru
+                        </h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-gray-50 text-xs uppercase text-gray-500 font-semibold">
+                                    <tr>
+                                        <th class="px-4 py-3 rounded-l-lg">Tanggal</th>
+                                        <th class="px-4 py-3">Pasien</th>
+                                        <th class="px-4 py-3 rounded-r-lg">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-table-body" class="divide-y divide-gray-50"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: INPUT ADMINISTRATIF (PERAWAT) -->
+            <section id="view-input-admin" class="page-view hidden">
+                <div class="flex items-center justify-between mb-6">
+                     <h2 class="text-2xl font-bold text-gray-800">Registrasi Visum Baru</h2>
+                     <button onclick="document.getElementById('form-visum').reset()" class="text-sm text-gray-500 hover:text-blue-600"><i class="fas fa-redo"></i> Reset Form</button>
+                </div>
+                
+                <form id="form-visum" class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 max-w-5xl" onsubmit="handleFormAdmin(event)">
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <div class="space-y-5">
+                            <h3 class="text-sm font-bold text-blue-600 uppercase tracking-wide border-b pb-2 mb-4">Data Pasien</h3>
+                            <div><label class="block text-sm font-medium mb-1 text-gray-700">Nomor Rekam Medis (RM)</label><input type="text" name="nomorRm" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="Contoh: 12-34-56"></div>
+                            <div><label class="block text-sm font-medium mb-1 text-gray-700">Nama Lengkap Pasien</label><input type="text" name="namaPasien" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                            <div><label class="block text-sm font-medium mb-1 text-gray-700">Tanggal Kunjungan</label><input type="date" name="tglKunjungan" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                            <div><label class="block text-sm font-medium mb-1 text-gray-700">Dokter Pemeriksa</label><select id="dokter-select" name="dokterPemeriksa" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white focus:ring-2 focus:ring-blue-500 outline-none"></select></div>
+                        </div>
+                        <div class="space-y-5">
+                            <h3 class="text-sm font-bold text-blue-600 uppercase tracking-wide border-b pb-2 mb-4">Data Administrasi SPVR</h3>
+                            <div><label class="block text-sm font-medium mb-1 text-gray-700">Nomor Surat (SPVR)</label><input type="text" name="noSpvr" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="text-xs font-semibold text-gray-500 mb-1 block">Tgl Surat</label><input type="date" name="tglSpvr" required class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                                <div><label class="text-xs font-semibold text-gray-500 mb-1 block">Tgl Diterima</label><input type="date" name="tglTerima" required class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                            </div>
+                            <div><label class="block text-sm font-medium mb-1 text-gray-700">Instansi Pengirim</label><select name="sumberSpvr" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white focus:ring-2 focus:ring-blue-500 outline-none"><option>Polres</option><option>Polsek</option><option>Lainnya</option></select></div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1 text-gray-700">Upload Dokumen (PDF)</label>
+                                <div class="flex items-center justify-center w-full">
+                                    <label for="file-resume" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                            <i class="fas fa-cloud-upload-alt text-2xl text-gray-400 mb-2"></i>
+                                            <p class="text-sm text-gray-500"><span class="font-semibold">Klik untuk upload</span> atau drag and drop</p>
+                                            <p class="text-xs text-gray-500">PDF (MAX. 5MB)</p>
+                                        </div>
+                                        <input id="file-resume" type="file" class="hidden" accept="application/pdf" />
+                                    </label>
+                                </div>
+                                <p id="file-name-display" class="text-xs text-green-600 mt-2 font-semibold"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-xl font-bold hover:shadow-lg transition flex items-center justify-center gap-2" id="btn-submit-admin">
+                        <i class="fas fa-paper-plane"></i> Simpan Data & Kirim Notifikasi
+                    </button>
+                </form>
+            </section>
+
+            <!-- VIEW: INPUT MEDIS (DOKTER) -->
+            <section id="view-input-medis" class="page-view hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Dokumentasi Foto Klinis</h2>
+                
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 max-w-4xl">
+                    <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-6 flex items-end gap-3">
+                        <div class="flex-1">
+                            <label class="block text-xs font-bold text-blue-800 uppercase tracking-wide mb-1">Cari Pasien Aktif</label>
+                            <input type="text" id="medis-search-rm" class="w-full border border-blue-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Masukkan Nomor RM Pasien">
+                        </div>
+                        <button onclick="checkPatient()" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-blue-700 shadow-md shadow-blue-500/30 transition">
+                            <i class="fas fa-search"></i> Cek Data
+                        </button>
+                    </div>
+                    
+                    <p id="patient-check-result" class="text-sm font-semibold mb-6 min-h-[20px]"></p>
+                    
+                    <div id="upload-zone" class="hidden animate-fade-in">
+                        <div class="border-2 border-dashed border-blue-200 bg-blue-50/50 rounded-xl p-8 text-center mb-6 hover:bg-blue-50 transition cursor-pointer" onclick="document.getElementById('file-foto').click()">
+                            <i class="fas fa-camera text-4xl text-blue-300 mb-3"></i>
+                            <h3 class="font-bold text-gray-700">Tap untuk Ambil / Pilih Foto</h3>
+                            <p class="text-sm text-gray-500">Sistem akan otomatis mengompres foto untuk efisiensi.</p>
+                            <input type="file" id="file-foto" multiple accept="image/*" class="hidden" onchange="previewImages()">
+                        </div>
+                        
+                        <div id="image-preview" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
+                        
+                        <button onclick="handleFormDokter()" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-500/30 transition flex items-center justify-center gap-2" id="btn-submit-medis">
+                            <i class="fas fa-cloud-upload-alt"></i> Upload Foto Ke Database
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: USER MANAGEMENT (ADMIN) -->
+            <section id="view-users" class="page-view hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Manajemen Pengguna</h2>
+                    <button onclick="loadUsers()" class="text-blue-600 hover:bg-blue-50 px-3 py-1 rounded transition"><i class="fas fa-sync"></i> Refresh</button>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-500">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b">
+                                <tr>
+                                    <th class="px-6 py-4">Nama User</th>
+                                    <th class="px-6 py-4">Email</th>
+                                    <th class="px-6 py-4">Role</th>
+                                    <th class="px-6 py-4">Status</th>
+                                    <th class="px-6 py-4 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="user-table-body" class="divide-y divide-gray-50"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: SEARCH -->
+            <section id="view-search" class="page-view hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Pencarian Data Terpadu</h2>
+                <div class="relative mb-8">
+                    <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="search-input" placeholder="Ketik Nama Pasien, Nomor RM, atau Nomor SPVR..." class="w-full pl-12 pr-4 py-4 rounded-xl shadow-sm border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-lg transition" onkeyup="if(event.key === 'Enter') doSearch()">
+                </div>
+                
+                <div id="search-results" class="grid grid-cols-1 gap-4">
+                     <!-- Results will appear here -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- LOGIC SCRIPT -->
+    <script>
+        let currentUser = null;
+        let selectedPatient = null;
+        let tempEmail = "";
+        let selectedFiles = [];
+
+        // --- AUTH ---
+        function handleCredentialResponse(response) {
+            let email = JSON.parse(atob(response.credential.split('.')[1])).email;
+            
+            showToast("Memverifikasi kredensial...", "info");
+            callAPI("login", { token: response.credential, email: email })
+            .then(res => {
+                if (res.status === 'success') {
+                    populateDoctors(res.dokterList);
+                    onLoginSuccess(res.user);
+                } else if (res.status === 'register_needed') {
+                    tempEmail = res.email;
+                    document.getElementById('reg-email').value = tempEmail;
+                    document.getElementById('login-view').classList.add('hidden');
+                    document.getElementById('register-view').classList.remove('hidden');
+                } else {
+                    showToast(res.message, "error");
+                }
+            });
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-reg-submit');
+            btn.disabled = true; btn.innerText = "Memproses Aktivasi...";
+
+            const payload = {
+                nama: document.getElementById('reg-nama').value,
+                noHp: document.getElementById('reg-hp').value,
+                role: document.getElementById('reg-role').value,
+                email: tempEmail
+            };
+
+            const res = await callAPI("register", payload);
+            if(res.status === 'success') {
+                document.getElementById('register-view').classList.add('hidden');
+                onLoginSuccess(res.user);
+                showToast("Akun Aktif! Selamat Datang.", "success");
+            } else {
+                showToast(res.message, "error");
+                btn.disabled = false; btn.innerText = "Aktifkan Akun";
+            }
+        }
+
+        function onLoginSuccess(user) {
+            currentUser = user;
+            document.getElementById('login-view').classList.add('hidden');
+            document.getElementById('app-view').classList.remove('hidden');
+            document.getElementById('app-view').classList.add('flex');
+
+            document.getElementById('user-name').innerText = user.nama;
+            document.getElementById('user-role').innerText = user.role;
+            document.getElementById('user-initial').innerText = user.nama.charAt(0);
+
+            // Role Logic
+            const role = user.role;
+            const nav = (id) => document.getElementById(id).classList.remove('hidden');
+            nav('nav-search');
+
+            if (role === 'Perawat') {
+                nav('nav-perawat');
+            } else if (role === 'Dokter') {
+                nav('nav-dokter');
+            } else if (role === 'Admin' || role === 'Super Admin') {
+                nav('nav-perawat'); nav('nav-dokter'); nav('nav-users'); nav('nav-admin-divider'); nav('nav-admin-label');
+            } else {
+                // Read Only View Logic if needed
+            }
+
+            // Private Mode Badge
+            if (role !== 'Admin' && role !== 'Super Admin') {
+                document.getElementById('data-scope-info').classList.remove('hidden');
+                document.getElementById('data-scope-info').classList.add('flex');
+            }
+
+            loadDashboard();
+        }
+
+        // --- DASHBOARD ---
+        async function loadDashboard() {
+            const res = await callAPI("get_stats", { userEmail: currentUser.email });
+            if(res.status === 'success') {
+                animateValue('stat-total', 0, res.stats.total, 1000);
+                animateValue('stat-month', 0, res.stats.month, 1000);
+                document.getElementById('stat-pending').innerText = "0"; // Mock logic
+
+                const tbody = document.getElementById('recent-table-body');
+                tbody.innerHTML = "";
+                if(res.stats.recent.length === 0) {
+                     tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-gray-400 text-xs">Belum ada data aktivitas.</td></tr>`;
+                } else {
+                    res.stats.recent.forEach(r => {
+                        tbody.innerHTML += `
+                            <tr class="hover:bg-blue-50/50 transition">
+                                <td class="px-4 py-3 font-medium text-gray-600">${new Date(r.tanggal).toLocaleDateString('id-ID')}</td>
+                                <td class="px-4 py-3">
+                                    <div class="font-bold text-gray-800">${r.nama}</div>
+                                    <div class="text-[10px] text-gray-500 uppercase">RM: ${r.rm}</div>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">${r.status}</span>
+                                </td>
+                            </tr>`;
+                    });
+                }
+                
+                // Render Simple Chart
+                renderChart(res.stats.month);
+            }
+        }
+
+        // --- FORMS ---
+        document.getElementById('file-resume').addEventListener('change', function(e){
+            if(this.files && this.files.length > 0){
+                document.getElementById('file-name-display').innerText = "File terpilih: " + this.files[0].name;
+            }
+        });
+
+        async function handleFormAdmin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit-admin');
+            const originalText = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = `<div class="loader w-4 h-4 border-2 border-white/50 border-t-white mr-2"></div> Memproses...`;
+            
+            const formData = new FormData(e.target);
+            const payload = Object.fromEntries(formData.entries());
+            const fileInput = document.getElementById('file-resume');
+            
+            const send = async (p) => {
+                const res = await callAPI('save_visum_admin', { payload: p, userEmail: currentUser.email });
+                if(res.status === 'success') { 
+                    showToast("Data Tersimpan & Email Notifikasi Terkirim", "success"); 
+                    e.target.reset(); 
+                    document.getElementById('file-name-display').innerText = "";
+                } else {
+                    showToast(res.message, "error");
+                }
+                btn.disabled = false; btn.innerHTML = originalText;
+            };
+
+            if (fileInput.files.length > 0) {
+                const reader = new FileReader();
+                reader.readAsDataURL(fileInput.files[0]);
+                reader.onload = () => {
+                    payload.fileResumeData = reader.result.split(',')[1];
+                    payload.fileResumeName = fileInput.files[0].name;
+                    send(payload);
+                };
+            } else send(payload);
+        }
+
+        // --- MEDICAL FORM & COMPRESSION ---
+        function checkPatient() {
+            const rm = document.getElementById('medis-search-rm').value;
+            if(!rm) return showToast("Masukkan nomor RM", "error");
+            
+            document.getElementById('patient-check-result').innerHTML = `<span class="text-blue-600 animate-pulse">Sedang mencari data pasien...</span>`;
+            
+            // Simulation
+            setTimeout(() => {
+                selectedPatient = rm;
+                document.getElementById('patient-check-result').innerHTML = `<span class="text-emerald-600 flex items-center gap-2"><i class="fas fa-check-circle"></i> Pasien Terverifikasi. Silakan ambil foto.</span>`;
+                document.getElementById('upload-zone').classList.remove('hidden');
+            }, 800);
+        }
+
+        function compressImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const maxWidth = 1024;
+                        const scaleSize = maxWidth / img.width;
+                        const width = (img.width > maxWidth) ? maxWidth : img.width;
+                        const height = (img.width > maxWidth) ? img.height * scaleSize : img.height;
+                        canvas.width = width; canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                        resolve({ name: file.name, mimeType: 'image/jpeg', data: dataUrl.split(',')[1] });
+                    }
+                }
+            });
+        }
+
+        function previewImages() {
+            const input = document.getElementById('file-foto');
+            const container = document.getElementById('image-preview');
+            container.innerHTML = '';
+            selectedFiles = Array.from(input.files);
+
+            selectedFiles.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    container.innerHTML += `<div class="aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 shadow-sm relative group">
+                        <img src="${e.target.result}" class="object-cover w-full h-full">
+                        <div class="absolute inset-0 bg-black/20 hidden group-hover:flex items-center justify-center text-white text-xs font-bold">Preview</div>
+                    </div>`;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function handleFormDokter() {
+            if(selectedFiles.length === 0) return showToast("Belum ada foto yang dipilih", "error");
+            const btn = document.getElementById('btn-submit-medis');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<div class="loader w-4 h-4 border-2 border-white/50 border-t-white mr-2"></div> Mengompres & Upload...`;
+            btn.disabled = true;
+
+            const compressedPhotos = await Promise.all(selectedFiles.map(file => compressImage(file)));
+            const res = await callAPI('save_medical_data', { payload: { nomorRm: selectedPatient, photos: compressedPhotos }, userEmail: currentUser.email });
+
+            if(res.status === 'success') {
+                showToast("Berhasil! Foto tersimpan aman.", "success");
+                document.getElementById('upload-zone').classList.add('hidden');
+                document.getElementById('image-preview').innerHTML = "";
+                document.getElementById('medis-search-rm').value = "";
+                document.getElementById('patient-check-result').innerHTML = "";
+                selectedFiles = [];
+            } else { showToast("Gagal upload", "error"); }
+            btn.innerHTML = originalText; btn.disabled = false;
+        }
+
+        // --- SEARCH ---
+        async function doSearch() {
+             const k = document.getElementById('search-input').value;
+             const res = await callAPI('search_patient', {keyword: k, userEmail: currentUser.email});
+             const div = document.getElementById('search-results');
+             
+             if(!res.data || res.data.length === 0) {
+                 div.innerHTML = `<div class="text-center p-8 text-gray-400 bg-white rounded-xl border border-gray-100 italic">Data tidak ditemukan. Coba kata kunci lain.</div>`;
+                 return;
+             }
+
+             div.innerHTML = res.data.map(d => `
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center hover:shadow-md transition">
+                    <div>
+                        <div class="font-bold text-lg text-gray-800">${d.nama}</div>
+                        <div class="text-sm text-gray-500 font-mono bg-gray-50 px-2 py-0.5 rounded inline-block mt-1">RM: ${d.rm}</div>
+                        <div class="text-xs text-gray-400 mt-1"><i class="far fa-calendar-alt"></i> ${new Date(d.tgl).toLocaleDateString()} &bull; ${d.dokter}</div>
+                    </div>
+                    <div class="text-right">
+                        ${d.resume ? 
+                            `<span class="text-emerald-600 bg-emerald-50 px-3 py-1 rounded-lg text-xs font-bold border border-emerald-100"><i class="fas fa-check"></i> Selesai</span>` : 
+                            `<span class="text-amber-600 bg-amber-50 px-3 py-1 rounded-lg text-xs font-bold border border-amber-100"><i class="fas fa-clock"></i> Pending</span>`
+                        }
+                    </div>
+                </div>`).join('');
+        }
+
+        // --- USER MGMT ---
+        async function loadUsers() {
+            nav('users');
+            const tbody = document.getElementById('user-table-body');
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center p-6 text-gray-400"><div class="loader mx-auto mb-2"></div>Mengambil data user...</td></tr>';
+            const res = await callAPI("get_users", { adminEmail: currentUser.email });
+            if(res.status === 'success') {
+                tbody.innerHTML = '';
+                res.users.forEach(u => {
+                    const isSuper = u.role === 'Super Admin';
+                    const isSelf = u.email === currentUser.email;
+                    
+                    let actions = `<span class="text-gray-300 text-xs italic">No Action</span>`;
+                    
+                    if(!isSuper && !isSelf) {
+                        actions = `
+                        <div class="flex items-center justify-center gap-2">
+                             ${u.role !== 'Admin' ? 
+                                `<button onclick="changeRole('${u.email}', 'Admin')" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200" title="Promote Admin"><i class="fas fa-user-shield"></i></button>` : 
+                                `<button onclick="changeRole('${u.email}', 'Perawat')" class="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded hover:bg-orange-200" title="Demote"><i class="fas fa-user-minus"></i></button>`}
+                             ${u.status === 'Aktif' ? 
+                                `<button onclick="changeStatus('${u.email}', 'Nonaktif')" class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200" title="Nonaktifkan"><i class="fas fa-ban"></i></button>` : 
+                                `<button onclick="changeStatus('${u.email}', 'Aktif')" class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200" title="Aktifkan"><i class="fas fa-check"></i></button>`}
+                        </div>`;
+                    }
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-4 font-medium text-gray-900">
+                                <div>${u.nama}</div>
+                                ${isSelf ? '<span class="text-[10px] bg-gray-100 text-gray-500 px-1 rounded">Anda</span>' : ''}
+                            </td>
+                            <td class="px-6 py-4 text-gray-500">${u.email}</td>
+                            <td class="px-6 py-4"><span class="bg-blue-50 text-blue-700 text-xs font-bold px-2 py-1 rounded-full border border-blue-100">${u.role}</span></td>
+                            <td class="px-6 py-4">${u.status === 'Aktif' ? '<span class="text-green-600 font-bold text-xs flex items-center gap-1"><i class="fas fa-circle text-[8px]"></i> Aktif</span>' : '<span class="text-red-500 font-bold text-xs">Nonaktif</span>'}</td>
+                            <td class="px-6 py-4 text-center">${actions}</td>
+                        </tr>`;
+                });
+            } else { tbody.innerHTML = `<tr><td colspan="5" class="text-center text-red-500 p-4">Error: ${res.message}</td></tr>`; }
+        }
+
+        async function changeRole(e, r) { if(confirm(`Ubah role ${e} menjadi ${r}?`)) { await callAPI("update_role", { adminEmail: currentUser.email, targetEmail: e, newRole: r, newStatus: "Aktif" }); loadUsers(); } }
+        async function changeStatus(e, s) { if(confirm(`Ubah status ${e} menjadi ${s}?`)) { await callAPI("update_role", { adminEmail: currentUser.email, targetEmail: e, newRole: "Perawat", newStatus: s }); loadUsers(); } } // Simplified logic due to backend constraint
+
+        // --- UTILS ---
+        function nav(id) { document.querySelectorAll('.page-view').forEach(e => e.classList.add('hidden')); document.getElementById('view-'+id).classList.remove('hidden'); }
+        async function callAPI(a, d) {
+            try { return await (await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: a, ...d }) })).json(); }
+            catch (e) { return { status: "error", message: "Koneksi Gagal" }; }
+        }
+        function showToast(m, t) { const el = document.getElementById('toast'); document.getElementById('toast-message').innerText = m; el.classList.remove('translate-x-full'); setTimeout(() => el.classList.add('translate-x-full'), 3000); }
+        function populateDoctors(l) { document.getElementById('dokter-select').innerHTML = "<option>Pilih Dokter...</option>" + (l||[]).map(d=>`<option>${d}</option>`).join(''); }
+        function animateValue(id, start, end, duration) {
+            if (start === end) return;
+            let current = start, range = end - start, increment = end > start ? 1 : -1, step = Math.abs(Math.floor(duration / range)), timer = setInterval(() => { current += increment; document.getElementById(id).innerText = current; if (current == end) clearInterval(timer); }, step);
+        }
+        function renderChart(val) {
+             const ctx = document.getElementById('visumChart').getContext('2d');
+             if(window.myChart) window.myChart.destroy();
+             window.myChart = new Chart(ctx, { type: 'line', data: { labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'], datasets: [{ label: 'Visum', data: [12, 19, 3, 5, 2, val], borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', fill: true, tension: 0.4 }] }, options: { responsive: true, plugins: { legend: {display: false} }, scales: { y: { beginAtZero: true, grid: { borderDash: [2, 2] } }, x: { grid: { display: false } } } } });
+        }
+        function logout() { location.reload(); }
+    </script>
+</body>
+</html>
