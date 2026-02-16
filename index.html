@@ -106,7 +106,7 @@
         </aside>
 
         <!-- CONTENT -->
-        <main class="flex-1 overflow-y-auto h-screen p-6 md:p-8 bg-white">
+        <main class="flex-1 overflow-y-auto h-screen p-6 md:p-8 bg-white relative">
             
             <!-- VIEW: DASHBOARD -->
             <section id="view-dashboard" class="page-view animate-fade-in">
@@ -227,11 +227,65 @@
                 <div id="search-results" class="grid grid-cols-1 gap-4"></div>
             </section>
 
-             <!-- VIEW: USERS -->
+             <!-- VIEW: USERS (ADMIN ONLY) -->
             <section id="view-users" class="page-view hidden">
                  <h2 class="text-3xl font-black text-black uppercase mb-6">User Manager</h2>
-                 <div class="hc-card p-4"><button onclick="loadUsers()" class="bg-blue-900 text-white p-2 mb-4 font-bold border-2 border-black hover:bg-blue-800">REFRESH LIST</button><div id="user-table-body" class="space-y-2 mt-4"></div></div>
+                 <div class="hc-card p-4">
+                    <button onclick="loadUsers()" class="bg-blue-900 text-white p-2 mb-4 font-bold border-2 border-black hover:bg-blue-800 uppercase text-sm"><i class="fas fa-sync"></i> Refresh List</button>
+                    <div id="user-table-body" class="space-y-2 mt-4"></div>
+                 </div>
             </section>
+
+            <!-- MODAL: EDIT USER (HIDDEN BY DEFAULT) -->
+            <div id="edit-user-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 p-4">
+                <div class="hc-card w-full max-w-lg p-6 relative animate-[fadeIn_0.2s_ease-out]">
+                    <button onclick="closeEditModal()" class="absolute top-4 right-4 text-xl font-bold hover:text-red-600">X</button>
+                    <h3 class="text-2xl font-black uppercase mb-6 border-b-4 border-black pb-2">Edit Profil User</h3>
+                    
+                    <form onsubmit="handleUpdateUser(event)" class="space-y-4">
+                        <input type="hidden" id="edit-email-target">
+                        
+                        <div>
+                            <label class="block text-xs font-bold uppercase mb-1">Email (ID)</label>
+                            <input type="text" id="edit-email-display" disabled class="w-full bg-slate-200 border-2 border-slate-400 p-2 font-mono font-bold text-slate-600">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase mb-1">Nama Lengkap & Gelar</label>
+                            <input type="text" id="edit-nama" required class="w-full hc-input p-2">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase mb-1">Nomor HP / WhatsApp</label>
+                            <input type="text" id="edit-hp" required class="w-full hc-input p-2">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold uppercase mb-1">Role Akses</label>
+                                <select id="edit-role" class="w-full hc-input p-2">
+                                    <option value="Perawat">Perawat</option>
+                                    <option value="Dokter">Dokter</option>
+                                    <option value="Admin">Admin</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase mb-1">Status Akun</label>
+                                <select id="edit-status" class="w-full hc-input p-2">
+                                    <option value="Aktif">Aktif</option>
+                                    <option value="Nonaktif">Nonaktif</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 flex gap-3">
+                            <button type="button" onclick="closeEditModal()" class="flex-1 py-3 font-bold border-2 border-black hover:bg-slate-100 uppercase">Batal</button>
+                            <button type="submit" id="btn-save-user" class="flex-1 py-3 bg-green-800 text-white font-bold border-2 border-black hover:bg-green-700 uppercase shadow-[4px_4px_0px_#000]">Simpan Perubahan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
         </main>
     </div>
 
@@ -618,9 +672,9 @@
             div.innerHTML = (res.data||[]).map(d => `<div class="bg-white p-4 border-4 border-black mb-2"><h4 class="font-black">${d.nama}</h4><p>RM: ${d.rm} - ${d.dokter}</p></div>`).join('') || '<p class="text-center font-bold">TIDAK ADA DATA</p>';
         }
         
-        // FIXED loadUsers FUNCTION WITH NAVIGATION
+        // --- USER MANAGEMENT (NEW UPDATE) ---
         async function loadUsers() {
-             nav('users'); // <--- CRITICAL FIX: Switch view first
+             nav('users'); 
              const tbody = document.getElementById('user-table-body');
              tbody.innerHTML = '<div class="loader"></div> Memuat data...';
              
@@ -628,20 +682,80 @@
              
              if(res.status === 'success') {
                  tbody.innerHTML = res.users.map(u => `
-                    <div class="border-2 border-black p-3 flex justify-between items-center bg-slate-50 hover:bg-white transition">
+                    <div class="border-2 border-black p-3 flex justify-between items-center bg-slate-50 hover:bg-white transition group">
                         <div>
                             <div class="font-black text-lg">${u.nama}</div>
-                            <div class="text-xs text-slate-500 font-bold bg-yellow-200 inline-block px-1">${u.role}</div>
-                            <div class="text-xs text-slate-400">${u.email}</div>
+                            <div class="text-xs text-slate-500 font-bold bg-yellow-200 inline-block px-1 mb-1">${u.role}</div>
+                            <div class="text-xs text-slate-400 font-mono">${u.email}</div>
+                            <div class="text-xs text-slate-500 mt-1"><i class="fas fa-phone"></i> ${u.noHp}</div>
                         </div>
-                        <div class="text-right">
+                        <div class="text-right flex flex-col gap-2 items-end">
                             <span class="${u.status==='Aktif'?'text-green-700 bg-green-100':'text-red-700 bg-red-100'} font-black text-xs px-2 py-1 rounded uppercase">${u.status}</span>
+                            ${(u.role !== 'Super Admin' && currentUser.email !== u.email) ? 
+                                `<button onclick='openEditUserModal(${JSON.stringify(u)})' class="text-xs font-bold bg-blue-900 text-white px-3 py-1 hover:bg-blue-800 shadow-[2px_2px_0px_#000] active:shadow-none active:translate-y-[2px] transition-all">
+                                    <i class="fas fa-edit"></i> EDIT
+                                </button>` : ''
+                            }
                         </div>
                     </div>`).join('');
              } else {
                  tbody.innerHTML = `<div class="text-red-600 font-bold">Error: ${res.message}</div>`;
              }
         }
+
+        // Open Modal & Fill Data
+        function openEditUserModal(user) {
+            document.getElementById('edit-email-display').value = user.email;
+            document.getElementById('edit-email-target').value = user.email;
+            document.getElementById('edit-nama').value = user.nama;
+            document.getElementById('edit-hp').value = user.noHp;
+            document.getElementById('edit-role').value = user.role;
+            document.getElementById('edit-status').value = user.status;
+            
+            document.getElementById('edit-user-modal').classList.remove('hidden');
+            document.getElementById('edit-user-modal').classList.add('flex');
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-user-modal').classList.add('hidden');
+            document.getElementById('edit-user-modal').classList.remove('flex');
+        }
+
+        // Handle Submit Edit
+        async function handleUpdateUser(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('btn-save-user');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "Menyimpan...";
+            btn.disabled = true;
+
+            const targetEmail = document.getElementById('edit-email-target').value;
+            const newData = {
+                nama: document.getElementById('edit-nama').value,
+                noHp: document.getElementById('edit-hp').value,
+                role: document.getElementById('edit-role').value,
+                status: document.getElementById('edit-status').value
+            };
+
+            const res = await callAPI("update_user_profile", { 
+                adminEmail: currentUser.email,
+                targetEmail: targetEmail,
+                newData: newData
+            });
+
+            if (res.status === 'success') {
+                showToast("Profil User Diperbarui", "success");
+                closeEditModal();
+                loadUsers(); // Refresh list
+            } else {
+                showToast("Gagal: " + res.message, "error");
+            }
+            
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+
     </script>
 </body>
 </html>
