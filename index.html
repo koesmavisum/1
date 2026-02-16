@@ -325,7 +325,9 @@
                         </button>
                     </div>
                     
-                    <p id="patient-check-result" class="text-lg font-bold mb-6 min-h-[20px] bg-slate-100 p-2 border-l-4 border-black"></p>
+                    <div id="patient-check-result" class="text-lg font-bold mb-6 min-h-[20px]">
+                        <!-- Hasil pencarian akan muncul di sini -->
+                    </div>
                     
                     <div id="upload-zone" class="hidden animate-fade-in border-t-4 border-black pt-6">
                         <div class="border-4 border-dashed border-black bg-slate-50 p-8 text-center mb-6 hover:bg-yellow-50 transition cursor-pointer" onclick="document.getElementById('file-foto').click()">
@@ -383,7 +385,7 @@
         </main>
     </div>
 
-    <!-- LOGIC SCRIPT (SAME LOGIC, UPDATED VISUALS IN JS RENDERING) -->
+    <!-- LOGIC SCRIPT -->
     <script>
         let currentUser = null;
         let selectedPatient = null;
@@ -539,18 +541,33 @@
             } else send(payload);
         }
 
-        // --- MEDICAL FORM ---
-        function checkPatient() {
+        // --- MEDICAL FORM (LOGIC FIX: REAL VALIDATION) ---
+        async function checkPatient() {
             const rm = document.getElementById('medis-search-rm').value;
             if(!rm) return showToast("MASUKKAN NOMOR RM", "error");
             
-            document.getElementById('patient-check-result').innerHTML = `<span class="text-blue-800 font-black animate-pulse">MENCARI DATA...</span>`;
+            const resDiv = document.getElementById('patient-check-result');
+            resDiv.innerHTML = `<span class="text-blue-800 font-black animate-pulse">MENGHUBUNGI DATABASE...</span>`;
             
-            setTimeout(() => {
+            // PANGGIL API BACKEND (BUKAN SIMULASI LAGI)
+            const res = await callAPI('check_patient', { nomorRm: rm });
+            
+            if (res.status === 'success') {
                 selectedPatient = rm;
-                document.getElementById('patient-check-result').innerHTML = `<span class="text-green-800 font-black flex items-center gap-2"><i class="fas fa-check-square"></i> PASIEN TERVERIFIKASI.</span>`;
+                resDiv.innerHTML = `
+                    <div class="bg-green-100 border-l-4 border-green-800 p-3">
+                        <div class="text-green-900 font-black flex items-center gap-2"><i class="fas fa-check-square"></i> DATA DITEMUKAN</div>
+                        <div class="text-sm text-black font-bold mt-1">
+                            PASIEN: ${res.data.nama}<br>
+                            DOKTER: ${res.data.dokter}
+                        </div>
+                    </div>`;
                 document.getElementById('upload-zone').classList.remove('hidden');
-            }, 800);
+            } else {
+                selectedPatient = null;
+                resDiv.innerHTML = `<span class="text-red-700 font-black bg-red-100 px-2 py-1 border border-red-500"><i class="fas fa-times-circle"></i> ${res.message.toUpperCase()}</span>`;
+                document.getElementById('upload-zone').classList.add('hidden');
+            }
         }
 
         function compressImage(file) {
