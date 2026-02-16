@@ -13,30 +13,15 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
         
         /* High Contrast Base Settings */
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #ffffff; 
-            color: #0f172a; /* Slate 900 - Nearly Black */
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #0f172a; }
         
-        /* High Contrast Utilities */
+        /* Utilities */
         .hc-border { border: 2px solid #1e293b; }
         .hc-input { border: 2px solid #475569; background-color: #fff; color: #000; font-weight: 600; }
         .hc-input:focus { outline: 3px solid #2563eb; border-color: #2563eb; }
         .hc-card { background: white; border: 2px solid #0f172a; box-shadow: 4px 4px 0px #0f172a; }
-        .hc-btn-primary { background-color: #0f172a; color: white; border: 2px solid transparent; }
-        .hc-btn-primary:hover { background-color: #2563eb; }
-        
-        /* Custom Loader - High Visibility */
-        .loader {
-            border: 5px solid #e2e8f0; 
-            border-top: 5px solid #000000; 
-            border-radius: 50%;
-            width: 30px; height: 30px; animation: spin 1s linear infinite;
-        }
+        .loader { border: 5px solid #e2e8f0; border-top: 5px solid #000000; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* Page Transition */
         .page-view { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
@@ -45,14 +30,11 @@
 
     <!-- CONFIGURATION -->
     <script>
-        // URL DEPLOYMENT APPS SCRIPT
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxo08z_OLMe6KpKPJ3wOX6QKQ80YTweJfQfaP0plPQqauZKQ3qp1vIVKpToTIS7UVqy/exec"; 
-        
-        // CLIENT ID
         const GOOGLE_CLIENT_ID = "606872357226-63eva14elent817dpb55eb0o2savf4rt.apps.googleusercontent.com"; 
     </script>
 
-    <!-- TOAST HIGH CONTRAST -->
+    <!-- TOAST -->
     <div id="toast" class="fixed top-5 right-5 z-50 transform translate-x-full transition-transform duration-300">
         <div class="bg-slate-900 text-white border-l-8 border-yellow-400 p-4 flex items-center gap-3 shadow-2xl min-w-[300px]">
             <i class="fas fa-info-circle text-yellow-400 text-xl"></i>
@@ -60,7 +42,7 @@
         </div>
     </div>
 
-    <!-- 1. LOGIN PAGE (HIGH CONTRAST) -->
+    <!-- 1. LOGIN PAGE -->
     <section id="login-view" class="h-screen flex items-center justify-center bg-slate-100 px-4">
         <div class="hc-card p-10 w-full max-w-md text-center">
             <div class="mb-6 flex justify-center">
@@ -68,197 +50,80 @@
                     <i class="fas fa-hospital-user text-4xl text-white"></i>
                 </div>
             </div>
-            
-            <h1 class="text-3xl font-black text-black mb-2 uppercase tracking-tight">Sistem Visum</h1>
+            <h1 class="text-3xl font-black text-black mb-2 uppercase">Sistem Visum</h1>
             <p class="text-slate-700 mb-10 font-bold text-lg border-b-2 border-slate-200 pb-4">RSUD dr. R. Koesma</p>
-            
-            <div class="space-y-4">
-                <div id="g_id_onload"
-                     data-client_id="606872357226-63eva14elent817dpb55eb0o2savf4rt.apps.googleusercontent.com"
-                     data-callback="handleCredentialResponse"
-                     data-auto_prompt="false">
-                </div>
-                <!-- Google Button wrapped in border for visibility -->
-                <div class="border-2 border-black p-1 inline-block bg-white">
-                    <div class="g_id_signin w-full flex justify-center" 
-                         data-type="standard" 
-                         data-size="large" 
-                         data-theme="outline" 
-                         data-text="sign_in_with" 
-                         data-shape="rectangular" 
-                         data-logo_alignment="left"
-                         data-width="280">
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-8 pt-6">
-                <p class="text-sm text-black font-bold bg-yellow-100 p-2 border border-yellow-500">
-                    <i class="fas fa-lock"></i> Akses Terbatas / Authorized Only
-                </p>
+            <div id="g_id_onload" data-client_id="606872357226-63eva14elent817dpb55eb0o2savf4rt.apps.googleusercontent.com" data-callback="handleCredentialResponse" data-auto_prompt="false"></div>
+            <div class="border-2 border-black p-1 inline-block bg-white">
+                <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="rectangular" data-width="280"></div>
             </div>
         </div>
     </section>
 
-    <!-- 2. REGISTER PAGE (HIGH CONTRAST) -->
+    <!-- 2. REGISTER PAGE -->
     <section id="register-view" class="hidden h-screen flex items-center justify-center bg-slate-200">
         <div class="hc-card p-8 w-full max-w-md">
-            <div class="text-center mb-6 border-b-2 border-black pb-4">
-                <h2 class="text-2xl font-black text-black uppercase">Aktivasi Akun</h2>
-                <p class="text-base text-slate-700 font-bold">Lengkapi data untuk akses sistem</p>
-            </div>
-            
+            <h2 class="text-2xl font-black text-center mb-6 border-b-2 border-black pb-4">Aktivasi Akun</h2>
             <form onsubmit="handleRegister(event)" class="space-y-5">
-                <div>
-                    <label class="block text-sm font-bold text-black uppercase mb-1">Email (Google)</label>
-                    <input type="email" id="reg-email" disabled class="w-full bg-slate-200 border-2 border-slate-500 rounded-none px-4 py-3 text-black font-bold">
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-black uppercase mb-1">Nama Lengkap & Gelar</label>
-                    <input type="text" id="reg-nama" required class="w-full hc-input px-4 py-3 rounded-none" placeholder="CONTOH: DR. BUDI SANTOSO">
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-black uppercase mb-1">Nomor WhatsApp</label>
-                    <input type="tel" id="reg-hp" required class="w-full hc-input px-4 py-3 rounded-none" placeholder="0812...">
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-black uppercase mb-1">Role Profesi</label>
-                    <select id="reg-role" class="w-full hc-input px-4 py-3 rounded-none">
-                        <option value="Perawat" class="font-bold">Perawat / Admin Medis</option>
-                        <option value="Dokter" class="font-bold">Dokter Pemeriksa</option>
-                    </select>
-                </div>
-                <button type="submit" class="w-full bg-blue-900 text-white py-4 font-black text-lg hover:bg-blue-800 border-2 border-black mt-4" id="btn-reg-submit">
-                    AKTIFKAN AKUN
-                </button>
+                <input type="email" id="reg-email" disabled class="w-full bg-slate-200 border-2 border-slate-500 px-4 py-3 font-bold">
+                <input type="text" id="reg-nama" required class="w-full hc-input px-4 py-3" placeholder="NAMA LENGKAP & GELAR">
+                <input type="tel" id="reg-hp" required class="w-full hc-input px-4 py-3" placeholder="NO HP / WA">
+                <select id="reg-role" class="w-full hc-input px-4 py-3">
+                    <option value="Perawat">Perawat / Admin Medis</option>
+                    <option value="Dokter">Dokter Pemeriksa</option>
+                </select>
+                <button type="submit" class="w-full bg-blue-900 text-white py-4 font-black text-lg border-2 border-black mt-4" id="btn-reg-submit">AKTIFKAN AKUN</button>
             </form>
         </div>
     </section>
 
-    <!-- 3. MAIN APP LAYOUT (HIGH CONTRAST) -->
+    <!-- 3. MAIN APP LAYOUT -->
     <div id="app-view" class="hidden min-h-screen flex flex-col md:flex-row bg-white">
-        
-        <!-- SIDEBAR - DARK THEME -->
+        <!-- SIDEBAR -->
         <aside class="w-full md:w-72 bg-slate-900 text-white z-10 flex flex-col border-r-4 border-black">
             <div class="p-6 border-b-2 border-slate-700 flex items-center gap-4 bg-slate-950">
-                <div class="w-12 h-12 bg-yellow-400 rounded-none flex items-center justify-center text-black border-2 border-white">
-                    <i class="fas fa-heartbeat text-2xl"></i>
-                </div>
-                <div>
-                    <h2 class="font-black text-xl text-white tracking-wide">E-VISUM</h2>
-                    <p class="text-xs text-yellow-400 uppercase font-bold tracking-widest">Forensik System</p>
-                </div>
+                <div class="w-12 h-12 bg-yellow-400 flex items-center justify-center text-black border-2 border-white"><i class="fas fa-heartbeat text-2xl"></i></div>
+                <div><h2 class="font-black text-xl tracking-wide">E-VISUM</h2><p class="text-xs text-yellow-400 font-bold tracking-widest">Forensik System</p></div>
             </div>
-            
             <nav class="flex-1 p-4 space-y-3 overflow-y-auto">
                 <p class="px-4 text-xs uppercase text-slate-400 font-bold tracking-widest border-b border-slate-700 pb-1 mb-2">Menu Utama</p>
+                <button onclick="nav('dashboard')" class="nav-item w-full text-left px-4 py-4 hover:bg-slate-700 hover:text-yellow-300 font-bold text-lg border-l-4 border-transparent hover:border-yellow-400 active-nav"><i class="fas fa-chart-pie w-6"></i> Dashboard</button>
+                <button id="nav-perawat" onclick="nav('input-admin')" class="hidden nav-item w-full text-left px-4 py-4 hover:bg-slate-700 hover:text-yellow-300 font-bold text-lg border-l-4 border-transparent hover:border-yellow-400"><i class="fas fa-file-medical w-6"></i> Input SPVR</button>
+                <button id="nav-search" onclick="nav('search')" class="hidden nav-item w-full text-left px-4 py-4 hover:bg-slate-700 hover:text-yellow-300 font-bold text-lg border-l-4 border-transparent hover:border-yellow-400"><i class="fas fa-search w-6"></i> Pencarian</button>
                 
-                <button onclick="nav('dashboard')" class="nav-item w-full text-left px-4 py-4 hover:bg-slate-700 hover:text-yellow-300 transition flex items-center gap-4 font-bold text-lg border-l-4 border-transparent hover:border-yellow-400 active-nav bg-slate-800 text-yellow-400 border-yellow-400">
-                    <i class="fas fa-chart-pie w-6"></i> Dashboard
-                </button>
-                
-                <button id="nav-perawat" onclick="nav('input-admin')" class="hidden nav-item w-full text-left px-4 py-4 hover:bg-slate-700 hover:text-yellow-300 transition flex items-center gap-4 font-bold text-lg border-l-4 border-transparent hover:border-yellow-400">
-                    <i class="fas fa-file-medical w-6"></i> Input SPVR
-                </button>
-                
-                <button id="nav-dokter" onclick="nav('input-medis')" class="hidden nav-item w-full text-left px-4 py-4 hover:bg-slate-700 hover:text-yellow-300 transition flex items-center gap-4 font-bold text-lg border-l-4 border-transparent hover:border-yellow-400">
-                    <i class="fas fa-camera w-6"></i> Foto Klinis
-                </button>
-                
-                <button id="nav-search" onclick="nav('search')" class="hidden nav-item w-full text-left px-4 py-4 hover:bg-slate-700 hover:text-yellow-300 transition flex items-center gap-4 font-bold text-lg border-l-4 border-transparent hover:border-yellow-400">
-                    <i class="fas fa-search w-6"></i> Pencarian
-                </button>
-
                 <div id="nav-admin-divider" class="hidden my-4 border-t-2 border-slate-700"></div>
-                <p id="nav-admin-label" class="hidden px-4 text-xs uppercase text-slate-400 font-bold tracking-widest mb-2">Administrator</p>
-
-                <button id="nav-users" onclick="loadUsers()" class="hidden nav-item w-full text-left px-4 py-4 hover:bg-slate-700 hover:text-yellow-300 transition flex items-center gap-4 font-bold text-lg border-l-4 border-transparent hover:border-yellow-400">
-                    <i class="fas fa-users-cog w-6"></i> User Manager
-                </button>
+                <button id="nav-users" onclick="loadUsers()" class="hidden nav-item w-full text-left px-4 py-4 hover:bg-slate-700 hover:text-yellow-300 font-bold text-lg border-l-4 border-transparent hover:border-yellow-400"><i class="fas fa-users-cog w-6"></i> User Manager</button>
             </nav>
-
             <div class="p-4 bg-slate-950 border-t-2 border-slate-700">
                 <div class="flex items-center gap-3 mb-4">
-                    <div class="w-12 h-12 rounded-none bg-white text-black flex items-center justify-center font-black text-xl border-2 border-slate-500" id="user-initial">U</div>
-                    <div class="overflow-hidden">
-                        <p class="text-base font-bold text-white truncate" id="user-name">User</p>
-                        <p class="text-xs text-black font-black uppercase tracking-wide bg-yellow-400 px-2 py-1 inline-block" id="user-role">Role</p>
-                    </div>
+                    <div class="w-12 h-12 bg-white text-black flex items-center justify-center font-black text-xl border-2 border-slate-500" id="user-initial">U</div>
+                    <div class="overflow-hidden"><p class="text-base font-bold text-white truncate" id="user-name">User</p><p class="text-xs text-black font-black bg-yellow-400 px-2 py-1 inline-block" id="user-role">Role</p></div>
                 </div>
-                <button onclick="logout()" class="w-full text-sm bg-red-700 text-white hover:bg-red-600 p-3 text-center border-2 border-white transition font-bold flex items-center justify-center gap-2">
-                    <i class="fas fa-sign-out-alt"></i> KELUAR
-                </button>
+                <button onclick="logout()" class="w-full text-sm bg-red-700 text-white hover:bg-red-600 p-3 border-2 border-white font-bold flex items-center justify-center gap-2"><i class="fas fa-sign-out-alt"></i> KELUAR</button>
             </div>
         </aside>
 
-        <!-- CONTENT AREA -->
+        <!-- CONTENT -->
         <main class="flex-1 overflow-y-auto h-screen p-6 md:p-8 bg-white">
             
             <!-- VIEW: DASHBOARD -->
             <section id="view-dashboard" class="page-view animate-fade-in">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b-4 border-black pb-4">
-                    <div>
-                        <h2 class="text-3xl font-black text-black uppercase">Dashboard</h2>
-                        <p class="text-base text-slate-700 font-bold">Ringkasan Statistik Pelayanan</p>
-                    </div>
-                    <span id="data-scope-info" class="text-sm font-bold bg-yellow-100 text-black px-4 py-2 border-2 border-black hidden flex items-center gap-2">
-                        <i class="fas fa-user-lock"></i> MODE PRIBADI (DATA SAYA)
-                    </span>
+                    <div><h2 class="text-3xl font-black text-black uppercase">Dashboard</h2><p class="text-base text-slate-700 font-bold">Ringkasan Statistik</p></div>
                 </div>
                 
+                <!-- STATS CARDS -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <!-- High Contrast Stats Card -->
-                    <div class="hc-card p-6 relative overflow-hidden group">
-                        <div class="absolute right-0 top-0 p-4 opacity-10">
-                            <i class="fas fa-folder-open text-8xl text-black"></i>
-                        </div>
-                        <p class="text-black text-sm font-black uppercase tracking-widest border-b-2 border-black inline-block mb-2">Total Visum</p>
-                        <h3 class="text-5xl font-black text-blue-900 mt-2" id="stat-total">0</h3>
-                        <p class="text-sm text-black mt-2 font-bold bg-blue-100 inline-block px-2">Data Tahun Ini</p>
-                    </div>
-                    
-                    <div class="hc-card p-6 relative overflow-hidden group">
-                         <div class="absolute right-0 top-0 p-4 opacity-10">
-                            <i class="fas fa-calendar-check text-8xl text-black"></i>
-                        </div>
-                        <p class="text-black text-sm font-black uppercase tracking-widest border-b-2 border-black inline-block mb-2">Bulan Ini</p>
-                        <h3 class="text-5xl font-black text-green-900 mt-2" id="stat-month">0</h3>
-                        <p class="text-sm text-black mt-2 font-bold bg-green-100 inline-block px-2">Kunjungan Baru</p>
-                    </div>
-                    
-                    <div class="hc-card p-6 relative overflow-hidden group">
-                         <div class="absolute right-0 top-0 p-4 opacity-10">
-                            <i class="fas fa-clock text-8xl text-black"></i>
-                        </div>
-                        <p class="text-black text-sm font-black uppercase tracking-widest border-b-2 border-black inline-block mb-2">Pending</p>
-                        <h3 class="text-5xl font-black text-red-900 mt-2" id="stat-pending">0</h3>
-                         <p class="text-sm text-black mt-2 font-bold bg-red-100 inline-block px-2">Perlu Tindak Lanjut</p>
-                    </div>
+                    <div class="hc-card p-6 relative overflow-hidden"><i class="fas fa-folder-open text-8xl text-black absolute right-0 top-0 opacity-10"></i><p class="text-black text-sm font-black uppercase border-b-2 border-black inline-block mb-2">Total Visum</p><h3 class="text-5xl font-black text-blue-900 mt-2" id="stat-total">0</h3></div>
+                    <div class="hc-card p-6 relative overflow-hidden"><i class="fas fa-calendar-check text-8xl text-black absolute right-0 top-0 opacity-10"></i><p class="text-black text-sm font-black uppercase border-b-2 border-black inline-block mb-2">Bulan Ini</p><h3 class="text-5xl font-black text-green-900 mt-2" id="stat-month">0</h3></div>
+                    <div class="hc-card p-6 relative overflow-hidden"><i class="fas fa-clock text-8xl text-black absolute right-0 top-0 opacity-10"></i><p class="text-black text-sm font-black uppercase border-b-2 border-black inline-block mb-2">Pending</p><h3 class="text-5xl font-black text-red-900 mt-2" id="stat-pending">0</h3></div>
                 </div>
-                
-                <!-- Chart & List Container -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="hc-card p-6">
-                        <h4 class="font-black text-xl text-black mb-6 flex items-center gap-2 border-b-2 border-slate-200 pb-2">
-                            <i class="fas fa-chart-line text-blue-800"></i> GRAFIK KUNJUNGAN
-                        </h4>
-                        <canvas id="visumChart" height="200"></canvas>
-                    </div>
-                    <div class="hc-card p-6">
-                        <h4 class="font-black text-xl text-black mb-6 flex items-center gap-2 border-b-2 border-slate-200 pb-2">
-                            <i class="fas fa-history text-blue-800"></i> AKTIVITAS TERBARU
-                        </h4>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm text-left border-collapse border border-black">
-                                <thead class="bg-slate-900 text-white font-bold uppercase">
-                                    <tr>
-                                        <th class="px-4 py-3 border border-black">Tanggal</th>
-                                        <th class="px-4 py-3 border border-black">Pasien</th>
-                                        <th class="px-4 py-3 border border-black">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="recent-table-body" class="divide-y divide-black font-semibold text-black"></tbody>
-                            </table>
+
+                <!-- DOKTER SPECIFIC: QUEUE LIST -->
+                <div id="doctor-queue-container" class="hidden mb-8">
+                    <div class="hc-card p-6 border-l-8 border-blue-900">
+                        <h3 class="text-2xl font-black text-blue-900 uppercase mb-4 flex items-center gap-2"><i class="fas fa-user-md"></i> DAFTAR ANTRIAN PASIEN SAYA</h3>
+                        <div id="doctor-queue-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Cards Antrian akan muncul disini -->
                         </div>
                     </div>
                 </div>
@@ -270,7 +135,6 @@
                      <h2 class="text-3xl font-black text-black uppercase">Input Visum Baru</h2>
                      <button onclick="document.getElementById('form-visum').reset()" class="text-sm font-bold bg-slate-200 px-4 py-2 border-2 border-black hover:bg-slate-300"><i class="fas fa-redo"></i> RESET</button>
                 </div>
-                
                 <form id="form-visum" class="hc-card p-8 max-w-5xl" onsubmit="handleFormAdmin(event)">
                      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                         <div class="space-y-6">
@@ -290,83 +154,41 @@
                             <div><label class="block text-sm font-bold mb-2 text-black uppercase">Instansi Pengirim</label><select name="sumberSpvr" class="w-full hc-input p-3"><option>Polres</option><option>Polsek</option><option>Lainnya</option></select></div>
                             <div class="border-2 border-black p-4 bg-slate-50">
                                 <label class="block text-sm font-black mb-2 text-black uppercase">Upload Dokumen (PDF)</label>
-                                <div class="flex items-center justify-center w-full">
-                                    <label for="file-resume" class="flex flex-col items-center justify-center w-full h-32 border-4 border-black border-dashed cursor-pointer bg-white hover:bg-yellow-50">
-                                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                                            <i class="fas fa-cloud-upload-alt text-4xl text-black mb-2"></i>
-                                            <p class="text-sm text-black font-bold">KLIK UNTUK UPLOAD</p>
-                                            <p class="text-xs text-black font-bold bg-yellow-200 px-2">PDF (MAX. 5MB)</p>
-                                        </div>
-                                        <input id="file-resume" type="file" class="hidden" accept="application/pdf" />
-                                    </label>
-                                </div>
-                                <p id="file-name-display" class="text-sm text-green-800 mt-2 font-black"></p>
+                                <input id="file-resume" type="file" class="block w-full text-sm font-bold file:mr-4 file:py-2 file:px-4 file:border-2 file:border-black file:bg-yellow-400 hover:file:bg-yellow-500" accept="application/pdf" />
                             </div>
                         </div>
                     </div>
-                    <button type="submit" class="w-full bg-blue-900 text-white py-4 font-black text-xl hover:bg-blue-800 border-4 border-black shadow-[4px_4px_0px_#000] active:shadow-none active:translate-y-[4px] transition-all flex items-center justify-center gap-3" id="btn-submit-admin">
-                        <i class="fas fa-paper-plane"></i> SIMPAN DATA
-                    </button>
+                    <button type="submit" class="w-full bg-blue-900 text-white py-4 font-black text-xl hover:bg-blue-800 border-4 border-black shadow-[4px_4px_0px_#000] active:shadow-none active:translate-y-[4px] transition-all flex items-center justify-center gap-3" id="btn-submit-admin"><i class="fas fa-paper-plane"></i> SIMPAN DATA</button>
                 </form>
             </section>
 
-            <!-- VIEW: INPUT MEDIS (DOKTER) -->
+            <!-- VIEW: INPUT MEDIS (DOKTER - AUTOFILL FROM QUEUE) -->
             <section id="view-input-medis" class="page-view hidden">
-                <h2 class="text-3xl font-black text-black uppercase mb-6 border-b-4 border-black pb-4">Dokumentasi Foto Klinis</h2>
+                <div class="flex items-center gap-4 mb-6 border-b-4 border-black pb-4">
+                    <button onclick="nav('dashboard')" class="bg-slate-200 p-2 border-2 border-black hover:bg-slate-300"><i class="fas fa-arrow-left"></i></button>
+                    <h2 class="text-3xl font-black text-black uppercase">Pemeriksaan Visum</h2>
+                </div>
                 
-                <div class="hc-card p-8 max-w-4xl">
-                    <div class="bg-blue-100 p-6 border-4 border-blue-900 mb-6 flex items-end gap-3">
-                        <div class="flex-1">
-                            <label class="block text-sm font-black text-blue-900 uppercase tracking-wide mb-2">Cari Pasien Aktif (Nomor RM)</label>
-                            <input type="text" id="medis-search-rm" class="w-full border-4 border-blue-900 p-3 font-bold text-lg" placeholder="Masukkan Nomor RM Pasien">
-                        </div>
-                        <button onclick="checkPatient()" class="bg-blue-900 text-white px-8 py-4 font-black uppercase hover:bg-blue-800 border-4 border-black shadow-[4px_4px_0px_#000]">
-                            <i class="fas fa-search"></i> CEK
-                        </button>
+                <div class="hc-card p-6 mb-6 bg-yellow-50">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><p class="text-xs font-bold text-slate-500 uppercase">Pasien</p><p class="text-2xl font-black text-black" id="medis-nama-pasien">-</p></div>
+                        <div><p class="text-xs font-bold text-slate-500 uppercase">Nomor RM</p><p class="text-xl font-black text-black" id="medis-rm">-</p></div>
                     </div>
-                    
-                    <div id="patient-check-result" class="text-lg font-bold mb-6 min-h-[20px]">
-                        <!-- Hasil pencarian akan muncul di sini -->
-                    </div>
-                    
-                    <div id="upload-zone" class="hidden animate-fade-in border-t-4 border-black pt-6">
-                        <div class="border-4 border-dashed border-black bg-slate-50 p-8 text-center mb-6 hover:bg-yellow-50 transition cursor-pointer" onclick="document.getElementById('file-foto').click()">
-                            <i class="fas fa-camera text-6xl text-black mb-4"></i>
-                            <h3 class="font-black text-2xl text-black uppercase">Ambil / Pilih Foto</h3>
-                            <p class="text-base text-black font-bold bg-yellow-200 inline-block px-2 mt-2">Sistem otomatis kompresi</p>
-                            <input type="file" id="file-foto" multiple accept="image/*" class="hidden" onchange="previewImages()">
-                        </div>
-                        
-                        <div id="image-preview" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
-                        
-                        <button onclick="handleFormDokter()" class="w-full bg-green-800 text-white py-4 font-black text-xl hover:bg-green-700 border-4 border-black shadow-[4px_4px_0px_#000] active:shadow-none active:translate-y-[4px] transition-all flex items-center justify-center gap-3" id="btn-submit-medis">
-                            <i class="fas fa-cloud-upload-alt"></i> UPLOAD FOTO
-                        </button>
-                    </div>
+                    <input type="hidden" id="medis-visum-id">
                 </div>
-            </section>
 
-            <!-- VIEW: USER MANAGEMENT (ADMIN) -->
-            <section id="view-users" class="page-view hidden">
-                <div class="flex justify-between items-center mb-6 border-b-4 border-black pb-4">
-                    <h2 class="text-3xl font-black text-black uppercase">Manajemen User</h2>
-                    <button onclick="loadUsers()" class="text-black font-bold bg-yellow-400 hover:bg-yellow-500 px-4 py-2 border-2 border-black uppercase"><i class="fas fa-sync"></i> Refresh</button>
-                </div>
-                <div class="hc-card overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left text-black font-bold border-collapse">
-                            <thead class="text-xs text-white uppercase bg-slate-900 border-b-4 border-black">
-                                <tr>
-                                    <th class="px-6 py-4 border-r border-slate-700">Nama User</th>
-                                    <th class="px-6 py-4 border-r border-slate-700">Email</th>
-                                    <th class="px-6 py-4 border-r border-slate-700">Role</th>
-                                    <th class="px-6 py-4 border-r border-slate-700">Status</th>
-                                    <th class="px-6 py-4 text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="user-table-body" class="divide-y-2 divide-black"></tbody>
-                        </table>
+                <div class="hc-card p-8">
+                    <div class="border-4 border-dashed border-black bg-slate-50 p-8 text-center mb-6 hover:bg-blue-50 transition cursor-pointer" onclick="document.getElementById('file-foto-multi').click()">
+                        <i class="fas fa-camera text-6xl text-black mb-4"></i>
+                        <h3 class="font-black text-2xl text-black uppercase">Tambah Foto (Bisa Banyak)</h3>
+                        <input type="file" id="file-foto-multi" multiple accept="image/*" class="hidden" onchange="handleFileSelect(event)">
                     </div>
+                    
+                    <div id="photo-input-container" class="space-y-4 mb-8">
+                        <!-- Preview Foto & Input Caption akan muncul disini -->
+                    </div>
+                    
+                    <button onclick="submitMedicalData()" class="w-full bg-green-800 text-white py-4 font-black text-xl hover:bg-green-700 border-4 border-black shadow-[4px_4px_0px_#000] active:shadow-none active:translate-y-[4px] transition-all flex items-center justify-center gap-3" id="btn-submit-medis"><i class="fas fa-check-double"></i> SELESAI & SIMPAN</button>
                 </div>
             </section>
 
@@ -377,10 +199,13 @@
                     <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-black text-xl"></i>
                     <input type="text" id="search-input" placeholder="KETIK NAMA PASIEN / RM / SPVR..." class="w-full pl-12 pr-4 py-4 rounded-none shadow-none border-4 border-black bg-white focus:bg-yellow-50 text-xl font-bold uppercase placeholder-slate-500 outline-none" onkeyup="if(event.key === 'Enter') doSearch()">
                 </div>
-                
-                <div id="search-results" class="grid grid-cols-1 gap-4">
-                     <!-- Results will appear here -->
-                </div>
+                <div id="search-results" class="grid grid-cols-1 gap-4"></div>
+            </section>
+
+             <!-- VIEW: USERS -->
+            <section id="view-users" class="page-view hidden">
+                 <h2 class="text-3xl font-black text-black uppercase mb-6">User Manager</h2>
+                 <div class="hc-card p-4"><button onclick="loadUsers()" class="bg-blue-900 text-white p-2 mb-4 font-bold">Refresh List</button><div id="user-table-body"></div></div>
             </section>
         </main>
     </div>
@@ -388,340 +213,293 @@
     <!-- LOGIC SCRIPT -->
     <script>
         let currentUser = null;
-        let selectedPatient = null;
-        let tempEmail = "";
-        let selectedFiles = [];
+        let selectedPhotos = []; // { file, caption, previewUrl }
+        let currentVisumData = null; // { id, nama, rm }
+
+        // --- STATE MANAGEMENT (REFRESH SUPPORT) ---
+        window.onload = function() {
+            const savedState = localStorage.getItem('visumAppState');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                if (state.currentUser) {
+                    onLoginSuccess(state.currentUser, false); // false = jangan save ulang, avoid loop
+                    if(state.currentView) nav(state.currentView);
+                    if(state.currentVisumData && state.currentView === 'input-medis') {
+                        prepareMedicalInput(state.currentVisumData);
+                    }
+                }
+            }
+        };
+
+        function saveState() {
+            const state = {
+                currentUser: currentUser,
+                currentView: document.querySelector('.page-view:not(.hidden)').id.replace('view-', ''),
+                currentVisumData: currentVisumData
+            };
+            localStorage.setItem('visumAppState', JSON.stringify(state));
+        }
 
         // --- AUTH ---
         function handleCredentialResponse(response) {
             let email = JSON.parse(atob(response.credential.split('.')[1])).email;
-            
-            showToast("VERIFIKASI KREDENSIAL...", "info");
-            callAPI("login", { token: response.credential, email: email })
-            .then(res => {
+            showToast("LOGIN...", "info");
+            callAPI("login", { token: response.credential, email: email }).then(res => {
                 if (res.status === 'success') {
                     populateDoctors(res.dokterList);
-                    onLoginSuccess(res.user);
+                    onLoginSuccess(res.user, true);
                 } else if (res.status === 'register_needed') {
-                    tempEmail = res.email;
-                    document.getElementById('reg-email').value = tempEmail;
+                    document.getElementById('reg-email').value = res.email;
                     document.getElementById('login-view').classList.add('hidden');
                     document.getElementById('register-view').classList.remove('hidden');
-                } else {
-                    showToast(res.message, "error");
-                }
+                } else { showToast(res.message, "error"); }
             });
         }
 
         async function handleRegister(e) {
             e.preventDefault();
-            const btn = document.getElementById('btn-reg-submit');
-            btn.disabled = true; btn.innerText = "MEMPROSES AKTIVASI...";
-
             const payload = {
                 nama: document.getElementById('reg-nama').value,
                 noHp: document.getElementById('reg-hp').value,
                 role: document.getElementById('reg-role').value,
-                email: tempEmail
+                email: document.getElementById('reg-email').value
             };
-
             const res = await callAPI("register", payload);
             if(res.status === 'success') {
                 document.getElementById('register-view').classList.add('hidden');
-                onLoginSuccess(res.user);
-                showToast("AKUN AKTIF!", "success");
-            } else {
-                showToast(res.message, "error");
-                btn.disabled = false; btn.innerText = "AKTIFKAN AKUN";
-            }
+                onLoginSuccess(res.user, true);
+            } else { showToast(res.message, "error"); }
         }
 
-        function onLoginSuccess(user) {
+        function onLoginSuccess(user, save) {
             currentUser = user;
             document.getElementById('login-view').classList.add('hidden');
             document.getElementById('app-view').classList.remove('hidden');
             document.getElementById('app-view').classList.add('flex');
-
             document.getElementById('user-name').innerText = user.nama;
             document.getElementById('user-role').innerText = user.role;
             document.getElementById('user-initial').innerText = user.nama.charAt(0);
 
-            // Role Logic
-            const role = user.role;
+            // Nav Permissions
             const nav = (id) => document.getElementById(id).classList.remove('hidden');
             nav('nav-search');
-
-            if (role === 'Perawat') {
-                nav('nav-perawat');
-            } else if (role === 'Dokter') {
-                nav('nav-dokter');
-            } else if (role === 'Admin' || role === 'Super Admin') {
-                nav('nav-perawat'); nav('nav-dokter'); nav('nav-users'); nav('nav-admin-divider'); nav('nav-admin-label');
-            }
-
-            // Private Mode Badge
-            if (role !== 'Admin' && role !== 'Super Admin') {
-                document.getElementById('data-scope-info').classList.remove('hidden');
-                document.getElementById('data-scope-info').classList.add('flex');
-            }
-
+            if (user.role === 'Perawat' || user.role === 'Admin' || user.role === 'Super Admin') nav('nav-perawat');
+            if (user.role === 'Admin' || user.role === 'Super Admin') { nav('nav-users'); nav('nav-admin-divider'); }
+            
+            // Load Initial Data
             loadDashboard();
+            if(save) saveState();
         }
 
-        // --- DASHBOARD ---
+        // --- DASHBOARD & DOCTOR QUEUE ---
         async function loadDashboard() {
             const res = await callAPI("get_stats", { userEmail: currentUser.email });
             if(res.status === 'success') {
-                animateValue('stat-total', 0, res.stats.total, 1000);
-                animateValue('stat-month', 0, res.stats.month, 1000);
-                document.getElementById('stat-pending').innerText = "0"; 
+                document.getElementById('stat-total').innerText = res.stats.total;
+                document.getElementById('stat-month').innerText = res.stats.month;
+            }
 
-                const tbody = document.getElementById('recent-table-body');
-                tbody.innerHTML = "";
-                if(res.stats.recent.length === 0) {
-                     tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-black font-bold italic bg-slate-100">BELUM ADA DATA AKTIVITAS.</td></tr>`;
+            // Jika Dokter, load Antrian
+            if(currentUser.role === 'Dokter') {
+                document.getElementById('doctor-queue-container').classList.remove('hidden');
+                loadDoctorQueue();
+            }
+        }
+
+        async function loadDoctorQueue() {
+            const listDiv = document.getElementById('doctor-queue-list');
+            listDiv.innerHTML = '<div class="loader"></div>';
+            const res = await callAPI("get_doctor_queue", { userEmail: currentUser.email });
+            
+            if(res.status === 'success') {
+                listDiv.innerHTML = '';
+                if(res.queue.length === 0) {
+                    listDiv.innerHTML = '<p class="text-slate-500 italic">Tidak ada pasien dalam antrian.</p>';
                 } else {
-                    res.stats.recent.forEach(r => {
-                        tbody.innerHTML += `
-                            <tr class="hover:bg-yellow-50 transition border-b border-black">
-                                <td class="px-4 py-3 border-r border-black">${new Date(r.tanggal).toLocaleDateString('id-ID')}</td>
-                                <td class="px-4 py-3 border-r border-black">
-                                    <div class="font-black text-black text-lg">${r.nama}</div>
-                                    <div class="text-sm text-slate-700 font-bold">RM: ${r.rm}</div>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <span class="bg-black text-white text-xs font-bold px-2 py-1 uppercase">${r.status}</span>
-                                </td>
-                            </tr>`;
+                    res.queue.forEach(q => {
+                        // Card Antrian
+                        const card = document.createElement('div');
+                        card.className = "bg-white border-4 border-black p-4 hover:shadow-lg transition flex justify-between items-center";
+                        card.innerHTML = `
+                            <div>
+                                <h4 class="font-black text-xl text-black uppercase">${q.nama}</h4>
+                                <p class="text-sm font-bold text-slate-600 bg-slate-200 px-2 inline-block">RM: ${q.rm}</p>
+                                <p class="text-xs text-slate-500 mt-1"><i class="far fa-clock"></i> ${new Date(q.tgl).toLocaleDateString()}</p>
+                            </div>
+                            <button onclick='startExamination(${JSON.stringify(q)})' class="bg-blue-900 text-white px-4 py-2 font-black border-2 border-black hover:bg-blue-800 shadow-[2px_2px_0px_#000]">
+                                PERIKSA <i class="fas fa-arrow-right"></i>
+                            </button>
+                        `;
+                        listDiv.appendChild(card);
                     });
                 }
-                
-                // Render Simple Chart (High Contrast Colors)
-                renderChart(res.stats.month);
             }
         }
 
-        // --- FORMS ---
-        document.getElementById('file-resume').addEventListener('change', function(e){
-            if(this.files && this.files.length > 0){
-                document.getElementById('file-name-display').innerText = "FILE TERPILIH: " + this.files[0].name.toUpperCase();
-            }
-        });
+        function startExamination(visumData) {
+            // Data visumData: { visumId, nama, rm, ... }
+            prepareMedicalInput(visumData);
+        }
 
-        async function handleFormAdmin(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btn-submit-admin');
-            const originalText = btn.innerHTML;
-            btn.disabled = true; btn.innerHTML = `<div class="loader w-6 h-6 border-4 border-slate-300 border-t-black mr-2"></div> MEMPROSES...`;
+        function prepareMedicalInput(data) {
+            currentVisumData = data;
+            document.getElementById('medis-nama-pasien').innerText = data.nama;
+            document.getElementById('medis-rm').innerText = data.rm;
+            document.getElementById('medis-visum-id').value = data.visumId;
             
-            const formData = new FormData(e.target);
-            const payload = Object.fromEntries(formData.entries());
-            const fileInput = document.getElementById('file-resume');
+            // Reset Photos
+            selectedPhotos = [];
+            renderPhotoInputs();
             
-            const send = async (p) => {
-                const res = await callAPI('save_visum_admin', { payload: p, userEmail: currentUser.email });
-                if(res.status === 'success') { 
-                    showToast("DATA TERSIMPAN!", "success"); 
-                    e.target.reset(); 
-                    document.getElementById('file-name-display').innerText = "";
-                } else {
-                    showToast(res.message, "error");
-                }
-                btn.disabled = false; btn.innerHTML = originalText;
+            nav('input-medis');
+        }
+
+        // --- MEDICAL INPUT (MULTI PHOTO + CAPTION) ---
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            if(files.length === 0) return;
+
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    selectedPhotos.push({
+                        file: file,
+                        previewUrl: e.target.result,
+                        caption: ""
+                    });
+                    renderPhotoInputs();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function renderPhotoInputs() {
+            const container = document.getElementById('photo-input-container');
+            container.innerHTML = '';
+            
+            selectedPhotos.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = "bg-white border-2 border-slate-300 p-4 flex flex-col md:flex-row gap-4 items-start";
+                div.innerHTML = `
+                    <div class="w-full md:w-1/3 aspect-video bg-black overflow-hidden border-2 border-black relative group">
+                        <img src="${item.previewUrl}" class="w-full h-full object-cover">
+                        <button onclick="removePhoto(${index})" class="absolute top-2 right-2 bg-red-600 text-white w-8 h-8 font-bold border-2 border-white hover:bg-red-700">X</button>
+                    </div>
+                    <div class="w-full md:w-2/3">
+                        <label class="block text-xs font-bold uppercase mb-1">Keterangan Foto / Temuan Luka</label>
+                        <textarea oninput="updateCaption(${index}, this.value)" class="w-full hc-input p-2 h-24" placeholder="Contoh: Luka lecet pada lengan kanan, ukuran 2x3 cm...">${item.caption}</textarea>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function removePhoto(index) {
+            selectedPhotos.splice(index, 1);
+            renderPhotoInputs();
+        }
+
+        function updateCaption(index, val) {
+            selectedPhotos[index].caption = val;
+        }
+
+        async function submitMedicalData() {
+            if(selectedPhotos.length === 0) return showToast("Upload minimal 1 foto.", "error");
+            
+            const btn = document.getElementById('btn-submit-medis');
+            btn.disabled = true; btn.innerHTML = "MENGOMPRES & UPLOAD...";
+
+            // Compress Photos Logic
+            const processedPhotos = await Promise.all(selectedPhotos.map(async (p) => {
+                const compressedData = await compressImage(p.file);
+                return {
+                    data: compressedData, // base64 string
+                    mimeType: 'image/jpeg',
+                    caption: p.caption
+                };
+            }));
+
+            const payload = {
+                visumId: currentVisumData.visumId,
+                nomorRm: currentVisumData.rm,
+                photos: processedPhotos
             };
 
-            if (fileInput.files.length > 0) {
-                const reader = new FileReader();
-                reader.readAsDataURL(fileInput.files[0]);
-                reader.onload = () => {
-                    payload.fileResumeData = reader.result.split(',')[1];
-                    payload.fileResumeName = fileInput.files[0].name;
-                    send(payload);
-                };
-            } else send(payload);
-        }
-
-        // --- MEDICAL FORM (LOGIC FIX: REAL VALIDATION) ---
-        async function checkPatient() {
-            const rm = document.getElementById('medis-search-rm').value;
-            if(!rm) return showToast("MASUKKAN NOMOR RM", "error");
+            const res = await callAPI("save_medical_data_v2", { payload: payload, userEmail: currentUser.email });
             
-            const resDiv = document.getElementById('patient-check-result');
-            resDiv.innerHTML = `<span class="text-blue-800 font-black animate-pulse">MENGHUBUNGI DATABASE...</span>`;
-            
-            // PANGGIL API BACKEND (BUKAN SIMULASI LAGI)
-            const res = await callAPI('check_patient', { nomorRm: rm });
-            
-            if (res.status === 'success') {
-                selectedPatient = rm;
-                resDiv.innerHTML = `
-                    <div class="bg-green-100 border-l-4 border-green-800 p-3">
-                        <div class="text-green-900 font-black flex items-center gap-2"><i class="fas fa-check-square"></i> DATA DITEMUKAN</div>
-                        <div class="text-sm text-black font-bold mt-1">
-                            PASIEN: ${res.data.nama}<br>
-                            DOKTER: ${res.data.dokter}
-                        </div>
-                    </div>`;
-                document.getElementById('upload-zone').classList.remove('hidden');
+            if(res.status === 'success') {
+                showToast("Pemeriksaan Selesai!", "success");
+                currentVisumData = null; // Clear active patient
+                nav('dashboard'); // Back to dashboard to check next patient
             } else {
-                selectedPatient = null;
-                resDiv.innerHTML = `<span class="text-red-700 font-black bg-red-100 px-2 py-1 border border-red-500"><i class="fas fa-times-circle"></i> ${res.message.toUpperCase()}</span>`;
-                document.getElementById('upload-zone').classList.add('hidden');
+                showToast("Gagal simpan: " + res.message, "error");
             }
+            btn.disabled = false; btn.innerHTML = "SELESAI & SIMPAN";
         }
 
         function compressImage(file) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
-                reader.onload = (event) => {
+                reader.onload = (ev) => {
                     const img = new Image();
-                    img.src = event.target.result;
+                    img.src = ev.target.result;
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
-                        const maxWidth = 1024;
-                        const scaleSize = maxWidth / img.width;
-                        const width = (img.width > maxWidth) ? maxWidth : img.width;
-                        const height = (img.width > maxWidth) ? img.height * scaleSize : img.height;
-                        canvas.width = width; canvas.height = height;
+                        const maxWidth = 1024; 
+                        const scale = maxWidth / img.width;
+                        const w = (img.width > maxWidth) ? maxWidth : img.width;
+                        const h = (img.width > maxWidth) ? img.height * scale : img.height;
+                        canvas.width = w; canvas.height = h;
                         const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-                        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-                        resolve({ name: file.name, mimeType: 'image/jpeg', data: dataUrl.split(',')[1] });
-                    }
-                }
-            });
-        }
-
-        function previewImages() {
-            const input = document.getElementById('file-foto');
-            const container = document.getElementById('image-preview');
-            container.innerHTML = '';
-            selectedFiles = Array.from(input.files);
-
-            selectedFiles.forEach(file => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    container.innerHTML += `<div class="aspect-square bg-slate-200 border-4 border-black relative group">
-                        <img src="${e.target.result}" class="object-cover w-full h-full grayscale group-hover:grayscale-0 transition">
-                        <div class="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center text-white font-bold uppercase">Preview</div>
-                    </div>`;
+                        ctx.drawImage(img, 0, 0, w, h);
+                        resolve(canvas.toDataURL('image/jpeg', 0.7).split(',')[1]);
+                    };
                 };
-                reader.readAsDataURL(file);
             });
         }
-
-        async function handleFormDokter() {
-            if(selectedFiles.length === 0) return showToast("PILIH FOTO TERLEBIH DAHULU", "error");
-            const btn = document.getElementById('btn-submit-medis');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = `<div class="loader w-6 h-6 border-4 border-slate-300 border-t-black mr-2"></div> UPLOAD...`;
-            btn.disabled = true;
-
-            const compressedPhotos = await Promise.all(selectedFiles.map(file => compressImage(file)));
-            const res = await callAPI('save_medical_data', { payload: { nomorRm: selectedPatient, photos: compressedPhotos }, userEmail: currentUser.email });
-
-            if(res.status === 'success') {
-                showToast("FOTO TERSIMPAN.", "success");
-                document.getElementById('upload-zone').classList.add('hidden');
-                document.getElementById('image-preview').innerHTML = "";
-                document.getElementById('medis-search-rm').value = "";
-                document.getElementById('patient-check-result').innerHTML = "";
-                selectedFiles = [];
-            } else { showToast("GAGAL UPLOAD", "error"); }
-            btn.innerHTML = originalText; btn.disabled = false;
-        }
-
-        // --- SEARCH ---
-        async function doSearch() {
-             const k = document.getElementById('search-input').value;
-             const res = await callAPI('search_patient', {keyword: k, userEmail: currentUser.email});
-             const div = document.getElementById('search-results');
-             
-             if(!res.data || res.data.length === 0) {
-                 div.innerHTML = `<div class="text-center p-8 text-black font-bold bg-slate-100 border-2 border-black uppercase">Data tidak ditemukan.</div>`;
-                 return;
-             }
-
-             div.innerHTML = res.data.map(d => `
-                <div class="bg-white p-5 border-4 border-black flex justify-between items-center hover:bg-yellow-50 transition">
-                    <div>
-                        <div class="font-black text-xl text-black uppercase">${d.nama}</div>
-                        <div class="text-base text-black font-bold bg-slate-200 px-2 inline-block mt-1 border border-black">RM: ${d.rm}</div>
-                        <div class="text-sm text-slate-800 mt-1 font-bold"><i class="far fa-calendar-alt"></i> ${new Date(d.tgl).toLocaleDateString()} &bull; ${d.dokter}</div>
-                    </div>
-                    <div class="text-right">
-                        ${d.resume ? 
-                            `<span class="text-white bg-green-800 px-4 py-2 text-sm font-black border-2 border-black uppercase"><i class="fas fa-check"></i> SELESAI</span>` : 
-                            `<span class="text-black bg-yellow-400 px-4 py-2 text-sm font-black border-2 border-black uppercase"><i class="fas fa-clock"></i> PENDING</span>`
-                        }
-                    </div>
-                </div>`).join('');
-        }
-
-        // --- USER MGMT ---
-        async function loadUsers() {
-            nav('users');
-            const tbody = document.getElementById('user-table-body');
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center p-6 text-black font-bold">MENGAMBIL DATA...</td></tr>';
-            const res = await callAPI("get_users", { adminEmail: currentUser.email });
-            if(res.status === 'success') {
-                tbody.innerHTML = '';
-                res.users.forEach(u => {
-                    const isSuper = u.role === 'Super Admin';
-                    const isSelf = u.email === currentUser.email;
-                    
-                    let actions = `<span class="text-slate-400 font-bold italic">--</span>`;
-                    
-                    if(!isSuper && !isSelf) {
-                        actions = `
-                        <div class="flex items-center justify-center gap-2">
-                             ${u.role !== 'Admin' ? 
-                                `<button onclick="changeRole('${u.email}', 'Admin')" class="text-sm bg-blue-200 text-blue-900 border border-black px-2 py-1 hover:bg-blue-300 font-bold" title="Jadikan Admin">ADMIN</button>` : 
-                                `<button onclick="changeRole('${u.email}', 'Perawat')" class="text-sm bg-yellow-200 text-yellow-900 border border-black px-2 py-1 hover:bg-yellow-300 font-bold" title="Turunkan Role">USER</button>`}
-                             ${u.status === 'Aktif' ? 
-                                `<button onclick="changeStatus('${u.email}', 'Nonaktif')" class="text-sm bg-red-200 text-red-900 border border-black px-2 py-1 hover:bg-red-300 font-bold" title="Matikan Akun">OFF</button>` : 
-                                `<button onclick="changeStatus('${u.email}', 'Aktif')" class="text-sm bg-green-200 text-green-900 border border-black px-2 py-1 hover:bg-green-300 font-bold" title="Aktifkan Akun">ON</button>`}
-                        </div>`;
-                    }
-
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-yellow-50 transition border-b border-black">
-                            <td class="px-6 py-4 font-bold text-black border-r border-black">
-                                <div class="uppercase">${u.nama}</div>
-                                ${isSelf ? '<span class="text-xs bg-black text-white px-1 font-bold">ANDA</span>' : ''}
-                            </td>
-                            <td class="px-6 py-4 text-black border-r border-black font-mono font-bold">${u.email}</td>
-                            <td class="px-6 py-4 border-r border-black"><span class="bg-slate-200 text-black text-xs font-black px-2 py-1 border border-black uppercase">${u.role}</span></td>
-                            <td class="px-6 py-4 border-r border-black">${u.status === 'Aktif' ? '<span class="text-green-800 font-black text-xs uppercase">✓ AKTIF</span>' : '<span class="text-red-700 font-black text-xs uppercase">X NONAKTIF</span>'}</td>
-                            <td class="px-6 py-4 text-center">${actions}</td>
-                        </tr>`;
-                });
-            } else { tbody.innerHTML = `<tr><td colspan="5" class="text-center text-red-600 font-bold p-4 border border-black">ERROR: ${res.message}</td></tr>`; }
-        }
-
-        async function changeRole(e, r) { if(confirm(`UBAH ROLE ${e} MENJADI ${r}?`)) { await callAPI("update_role", { adminEmail: currentUser.email, targetEmail: e, newRole: r, newStatus: "Aktif" }); loadUsers(); } }
-        async function changeStatus(e, s) { if(confirm(`UBAH STATUS ${e} MENJADI ${s}?`)) { await callAPI("update_role", { adminEmail: currentUser.email, targetEmail: e, newRole: "Perawat", newStatus: s }); loadUsers(); } } 
 
         // --- UTILS ---
-        function nav(id) { document.querySelectorAll('.page-view').forEach(e => e.classList.add('hidden')); document.getElementById('view-'+id).classList.remove('hidden'); }
+        function nav(id) { 
+            document.querySelectorAll('.page-view').forEach(e => e.classList.add('hidden')); 
+            document.getElementById('view-'+id).classList.remove('hidden'); 
+            saveState(); // Save state on nav change
+        }
         async function callAPI(a, d) {
             try { return await (await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: a, ...d }) })).json(); }
             catch (e) { return { status: "error", message: "Koneksi Gagal" }; }
         }
         function showToast(m, t) { const el = document.getElementById('toast'); document.getElementById('toast-message').innerText = m.toUpperCase(); el.classList.remove('translate-x-full'); setTimeout(() => el.classList.add('translate-x-full'), 3000); }
-        function populateDoctors(l) { document.getElementById('dokter-select').innerHTML = "<option>PILIH DOKTER...</option>" + (l||[]).map(d=>`<option class="font-bold">${d}</option>`).join(''); }
-        function animateValue(id, start, end, duration) {
-            if (start === end) return;
-            let current = start, range = end - start, increment = end > start ? 1 : -1, step = Math.abs(Math.floor(duration / range)), timer = setInterval(() => { current += increment; document.getElementById(id).innerText = current; if (current == end) clearInterval(timer); }, step);
+        function populateDoctors(l) { document.getElementById('dokter-select').innerHTML = "<option>Pilih Dokter...</option>" + (l||[]).map(d=>`<option>${d}</option>`).join(''); }
+        function logout() { localStorage.removeItem('visumAppState'); location.reload(); }
+        
+        // --- ADMIN INPUT & SEARCH ---
+        async function handleFormAdmin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit-admin'); btn.disabled=true; btn.innerHTML="MEMPROSES...";
+            const formData = new FormData(e.target); const payload = Object.fromEntries(formData.entries());
+            const file = document.getElementById('file-resume').files[0];
+            
+            const send = async (p) => {
+                const res = await callAPI('save_visum_admin', { payload: p, userEmail: currentUser.email });
+                if(res.status==='success') { showToast("TERSIMPAN","success"); e.target.reset(); }
+                else showToast(res.message,"error");
+                btn.disabled=false; btn.innerHTML="SIMPAN DATA";
+            };
+            if(file) {
+                const r = new FileReader(); r.onload=()=>{ payload.fileResumeData=r.result.split(',')[1]; payload.fileResumeName=file.name; send(payload); }; r.readAsDataURL(file);
+            } else send(payload);
         }
-        function renderChart(val) {
-             const ctx = document.getElementById('visumChart').getContext('2d');
-             if(window.myChart) window.myChart.destroy();
-             // HIGH CONTRAST CHART COLORS (Blue vs Black)
-             window.myChart = new Chart(ctx, { type: 'line', data: { labels: ['JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN'], datasets: [{ label: 'VISUM', data: [12, 19, 3, 5, 2, val], borderColor: '#000000', borderWidth: 3, pointBackgroundColor: '#000', pointRadius: 5, backgroundColor: 'rgba(0, 0, 0, 0.1)', fill: true, tension: 0 }] }, options: { responsive: true, plugins: { legend: {display: false} }, scales: { y: { beginAtZero: true, grid: { color: '#000000', lineWidth: 1 }, ticks: { color: '#000', font: {weight: 'bold'} } }, x: { grid: { display: false }, ticks: { color: '#000', font: {weight: 'bold'} } } } } });
+        async function doSearch() {
+            const k = document.getElementById('search-input').value;
+            const res = await callAPI('search_patient', {keyword: k, userEmail: currentUser.email});
+            const div = document.getElementById('search-results');
+            div.innerHTML = (res.data||[]).map(d => `<div class="bg-white p-4 border-4 border-black mb-2"><h4 class="font-black">${d.nama}</h4><p>RM: ${d.rm} - ${d.dokter}</p></div>`).join('') || '<p class="text-center font-bold">TIDAK ADA DATA</p>';
         }
-        function logout() { location.reload(); }
+        async function loadUsers() {
+             const res = await callAPI("get_users", {adminEmail:currentUser.email});
+             document.getElementById('user-table-body').innerHTML = res.users.map(u => `<div class="border-b p-2 flex justify-between"><span>${u.nama} (${u.role})</span><span class="${u.status==='Aktif'?'text-green-600':'text-red-600'} font-bold">${u.status}</span></div>`).join('');
+        }
     </script>
 </body>
 </html>
