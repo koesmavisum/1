@@ -4,29 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Visum RSUD dr. R. Koesma</title>
+    
+    <!-- External Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- tsParticles for effects -->
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.11.1/tsparticles.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        /* Base Settings */
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #0f172a; overflow-x: hidden; }
         
-        /* High Contrast Base Settings */
-        body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #0f172a; }
+        /* Login Page Specifics */
+        #login-view {
+            position: relative;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            overflow: hidden;
+        }
         
+        #tsparticles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0; /* Behind the card */
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            z-index: 10; /* Above particles */
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: transform 0.3s ease;
+        }
+        
+        .login-card:hover {
+            transform: translateY(-5px);
+        }
+
         /* Utilities */
-        .hc-border { border: 2px solid #1e293b; }
-        .hc-input { border: 2px solid #475569; background-color: #fff; color: #000; font-weight: 600; }
-        .hc-input:focus { outline: 3px solid #2563eb; border-color: #2563eb; }
-        .hc-card { background: white; border: 2px solid #0f172a; box-shadow: 4px 4px 0px #0f172a; }
-        .loader { border: 5px solid #e2e8f0; border-top: 5px solid #000000; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .page-view { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .hc-input { border: 1px solid #cbd5e1; background-color: #fff; transition: all 0.3s; }
+        .hc-input:focus { outline: none; border-color: #3b82f6; ring: 2px solid #93c5fd; }
+        .hc-card { background: white; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-radius: 12px; }
         
-        .tab-active { background-color: #1e3a8a; color: white; border-color: black; }
-        .tab-inactive { background-color: #f1f5f9; color: #64748b; border-color: #cbd5e1; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .page-view { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .tab-active { background-color: #1e3a8a; color: white; border-color: transparent; }
+        .tab-inactive { background-color: #f1f5f9; color: #64748b; border-color: #e2e8f0; }
         
         /* Sorting Icons */
         .sort-icon::after { content: '\f0dc'; font-family: 'Font Awesome 6 Free'; font-weight: 900; margin-left: 5px; opacity: 0.3; }
@@ -44,42 +79,83 @@
 
     <!-- TOAST -->
     <div id="toast" class="fixed top-5 right-5 z-50 transform translate-x-full transition-transform duration-300">
-        <div class="bg-slate-900 text-white border-l-8 border-yellow-400 p-4 flex items-center gap-3 shadow-2xl min-w-[300px]">
-            <i class="fas fa-info-circle text-yellow-400 text-xl"></i>
-            <span id="toast-message" class="font-bold text-lg">Notification</span>
+        <div class="bg-white border-l-4 border-blue-600 p-4 flex items-center gap-3 shadow-2xl rounded-lg min-w-[300px]">
+            <i class="fas fa-info-circle text-blue-600 text-xl"></i>
+            <span id="toast-message" class="font-semibold text-slate-800">Notification</span>
         </div>
     </div>
 
-    <!-- 1. LOGIN PAGE -->
-    <section id="login-view" class="h-screen flex items-center justify-center bg-slate-100 px-4">
-        <div class="hc-card p-10 w-full max-w-md text-center">
+    <!-- 1. LOGIN PAGE (NEW DESIGN) -->
+    <section id="login-view" class="h-screen flex items-center justify-center px-4 relative">
+        <!-- Particles Container -->
+        <div id="tsparticles"></div>
+
+        <!-- Login Card -->
+        <div class="login-card p-10 w-full max-w-md text-center relative">
             <div class="mb-6 flex justify-center">
-                <div class="w-20 h-20 bg-blue-900 flex items-center justify-center border-4 border-black">
+                <div class="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg transform rotate-3 hover:rotate-0 transition duration-500">
                     <i class="fas fa-hospital-user text-4xl text-white"></i>
                 </div>
             </div>
-            <h1 class="text-3xl font-black text-black mb-2 uppercase">Sistem Visum</h1>
-            <p class="text-slate-700 mb-10 font-bold text-lg border-b-2 border-slate-200 pb-4">RSUD dr. R. Koesma</p>
-            <div id="g_id_onload" data-client_id="606872357226-63eva14elent817dpb55eb0o2savf4rt.apps.googleusercontent.com" data-callback="handleCredentialResponse" data-auto_prompt="false"></div>
-            <div class="border-2 border-black p-1 inline-block bg-white">
-                <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="rectangular" data-width="280"></div>
+            
+            <h1 class="text-3xl font-bold text-slate-800 mb-2 tracking-tight">Sistem Visum Digital</h1>
+            <p class="text-slate-500 mb-8 font-medium">RSUD dr. R. Koesma</p>
+            
+            <div class="space-y-6">
+                <!-- Google Button Container -->
+                <div class="flex justify-center">
+                    <div id="g_id_onload"
+                         data-client_id="606872357226-63eva14elent817dpb55eb0o2savf4rt.apps.googleusercontent.com"
+                         data-callback="handleCredentialResponse"
+                         data-auto_prompt="false">
+                    </div>
+                    <div class="g_id_signin" 
+                         data-type="standard" 
+                         data-size="large" 
+                         data-theme="outline" 
+                         data-text="sign_in_with" 
+                         data-shape="rectangular" 
+                         data-logo_alignment="left"
+                         data-width="300">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-10 pt-6 border-t border-slate-200">
+                <p class="text-xs text-slate-400 font-medium flex items-center justify-center gap-2">
+                    <i class="fas fa-lock"></i> Akses Terbatas / Authorized Personnel Only
+                </p>
             </div>
         </div>
     </section>
 
     <!-- 2. REGISTER PAGE -->
-    <section id="register-view" class="hidden h-screen flex items-center justify-center bg-slate-200">
-        <div class="hc-card p-8 w-full max-w-md">
-            <h2 class="text-2xl font-black text-center mb-6 border-b-2 border-black pb-4">Aktivasi Akun</h2>
+    <section id="register-view" class="hidden h-screen flex items-center justify-center bg-slate-100">
+        <div class="hc-card p-8 w-full max-w-md bg-white">
+            <h2 class="text-2xl font-bold text-center mb-6 border-b pb-4 text-slate-800">Aktivasi Akun</h2>
             <form onsubmit="handleRegister(event)" class="space-y-5">
-                <input type="email" id="reg-email" disabled class="w-full bg-slate-200 border-2 border-slate-500 px-4 py-3 font-bold">
-                <input type="text" id="reg-nama" required class="w-full hc-input px-4 py-3" placeholder="NAMA LENGKAP & GELAR">
-                <input type="tel" id="reg-hp" required class="w-full hc-input px-4 py-3" placeholder="NO HP / WA">
-                <select id="reg-role" class="w-full hc-input px-4 py-3">
-                    <option value="Perawat">Perawat / Admin Medis</option>
-                    <option value="Dokter">Dokter Pemeriksa</option>
-                </select>
-                <button type="submit" class="w-full bg-blue-900 text-white py-4 font-black text-lg border-2 border-black mt-4" id="btn-reg-submit">AKTIFKAN AKUN</button>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
+                    <input type="email" id="reg-email" disabled class="w-full bg-slate-100 border border-slate-300 px-4 py-2 rounded font-medium text-slate-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nama Lengkap & Gelar</label>
+                    <input type="text" id="reg-nama" required class="w-full hc-input px-4 py-2 rounded" placeholder="Contoh: Dr. Budi Santoso, Sp.F">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nomor WhatsApp</label>
+                    <input type="tel" id="reg-hp" required class="w-full hc-input px-4 py-2 rounded" placeholder="0812...">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Role Profesi</label>
+                    <select id="reg-role" class="w-full hc-input px-4 py-2 rounded">
+                        <option value="Perawat">Perawat / Admin Medis</option>
+                        <option value="Dokter">Dokter Pemeriksa</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-blue-700 text-white py-3 rounded font-bold hover:bg-blue-800 transition shadow-lg mt-4" id="btn-reg-submit">
+                    AKTIFKAN AKUN
+                </button>
             </form>
         </div>
     </section>
@@ -87,63 +163,115 @@
     <!-- 3. MAIN APP LAYOUT -->
     <div id="app-view" class="hidden min-h-screen flex flex-col md:flex-row bg-white">
         <!-- SIDEBAR -->
-        <aside class="w-full md:w-72 bg-slate-900 text-white z-10 flex flex-col border-r-4 border-black">
-            <div class="p-6 border-b-2 border-slate-700 flex items-center gap-4 bg-slate-950">
-                <div class="w-12 h-12 bg-yellow-400 flex items-center justify-center text-black border-2 border-white"><i class="fas fa-heartbeat text-2xl"></i></div>
-                <div><h2 class="font-black text-xl tracking-wide">E-VISUM</h2><p class="text-xs text-yellow-400 font-bold tracking-widest">Forensik System</p></div>
+        <aside class="w-full md:w-72 bg-slate-900 text-white z-10 flex flex-col">
+            <div class="p-6 border-b border-slate-800 flex items-center gap-4 bg-slate-950">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                    <i class="fas fa-heartbeat text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="font-bold text-lg tracking-wide text-white">E-VISUM</h2>
+                    <p class="text-xs text-blue-400 font-semibold tracking-wider">Forensik System</p>
+                </div>
             </div>
-            <nav class="flex-1 p-4 space-y-3 overflow-y-auto">
-                <p class="px-4 text-xs uppercase text-slate-400 font-bold tracking-widest border-b border-slate-700 pb-1 mb-2">Menu Utama</p>
-                <button onclick="nav('dashboard')" class="nav-item w-full text-left px-4 py-4 hover:bg-slate-700 hover:text-yellow-300 font-bold text-lg border-l-4 border-transparent hover:border-yellow-400 active-nav"><i class="fas fa-chart-pie w-6"></i> Dashboard</button>
-                <button id="nav-perawat" onclick="nav('input-admin')" class="hidden nav-item w-full text-left px-4 py-4 hover:bg-slate-700 hover:text-yellow-300 font-bold text-lg border-l-4 border-transparent hover:border-yellow-400"><i class="fas fa-file-medical w-6"></i> Input SPVR</button>
-                <button id="nav-search" onclick="nav('search')" class="hidden nav-item w-full text-left px-4 py-4 hover:bg-slate-700 hover:text-yellow-300 font-bold text-lg border-l-4 border-transparent hover:border-yellow-400">
-                    <i class="fas fa-search w-6"></i> <span id="label-search">Pencarian</span>
+            
+            <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+                <p class="px-4 text-xs uppercase text-slate-500 font-bold tracking-widest mb-2">Menu Utama</p>
+                
+                <button onclick="nav('dashboard')" class="nav-item w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-blue-400 transition flex items-center gap-3 font-medium active-nav bg-slate-800 text-blue-400">
+                    <i class="fas fa-chart-pie w-5"></i> Dashboard
                 </button>
                 
-                <div id="nav-admin-divider" class="hidden my-4 border-t-2 border-slate-700"></div>
-                <button id="nav-users" onclick="loadUsers()" class="hidden nav-item w-full text-left px-4 py-4 hover:bg-slate-700 hover:text-yellow-300 font-bold text-lg border-l-4 border-transparent hover:border-yellow-400"><i class="fas fa-users-cog w-6"></i> User Manager</button>
+                <button id="nav-perawat" onclick="nav('input-admin')" class="hidden nav-item w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-blue-400 transition flex items-center gap-3 font-medium">
+                    <i class="fas fa-file-medical w-5"></i> Input SPVR
+                </button>
+                
+                <button id="nav-search" onclick="nav('search')" class="hidden nav-item w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-blue-400 transition flex items-center gap-3 font-medium">
+                    <i class="fas fa-search w-5"></i> <span id="label-search">Pencarian</span>
+                </button>
+                
+                <div id="nav-admin-divider" class="hidden my-4 border-t border-slate-800"></div>
+                <p id="nav-admin-label" class="hidden px-4 text-xs uppercase text-slate-500 font-bold tracking-widest mb-2">Administrator</p>
+                
+                <button id="nav-users" onclick="loadUsers()" class="hidden nav-item w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-purple-400 transition flex items-center gap-3 font-medium">
+                    <i class="fas fa-users-cog w-5"></i> User Manager
+                </button>
             </nav>
-            <div class="p-4 bg-slate-950 border-t-2 border-slate-700">
+
+            <div class="p-4 bg-slate-950 border-t border-slate-800">
                 <div class="flex items-center gap-3 mb-4">
-                    <div class="w-12 h-12 bg-white text-black flex items-center justify-center font-black text-xl border-2 border-slate-500" id="user-initial">U</div>
-                    <div class="overflow-hidden"><p class="text-base font-bold text-white truncate" id="user-name">User</p><p class="text-xs text-black font-black bg-yellow-400 px-2 py-1 inline-block" id="user-role">Role</p></div>
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-center font-bold text-sm shadow-md" id="user-initial">U</div>
+                    <div class="overflow-hidden">
+                        <p class="text-sm font-bold text-white truncate" id="user-name">User</p>
+                        <p class="text-xs text-slate-400 font-medium" id="user-role">Role</p>
+                    </div>
                 </div>
-                <button onclick="logout()" class="w-full text-sm bg-red-700 text-white hover:bg-red-600 p-3 border-2 border-white font-bold flex items-center justify-center gap-2"><i class="fas fa-sign-out-alt"></i> KELUAR</button>
+                <button onclick="logout()" class="w-full text-xs bg-red-600/10 text-red-400 hover:bg-red-600 hover:text-white p-2 rounded transition font-bold flex items-center justify-center gap-2 border border-red-900/30">
+                    <i class="fas fa-sign-out-alt"></i> KELUAR
+                </button>
             </div>
         </aside>
 
         <!-- CONTENT -->
-        <main class="flex-1 overflow-y-auto h-screen p-6 md:p-8 bg-white relative">
+        <main class="flex-1 overflow-y-auto h-screen p-6 md:p-8 bg-slate-50 relative">
             
             <!-- VIEW: DASHBOARD -->
             <section id="view-dashboard" class="page-view animate-fade-in">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b-4 border-black pb-4">
-                    <div><h2 class="text-3xl font-black text-black uppercase">Dashboard</h2><p class="text-base text-slate-700 font-bold">Ringkasan Statistik</p></div>
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">Dashboard</h2>
+                        <p class="text-sm text-slate-500">Ringkasan Statistik Pelayanan</p>
+                    </div>
                 </div>
                 
                 <!-- STATS CARDS -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div class="hc-card p-6 relative overflow-hidden"><i class="fas fa-folder-open text-8xl text-black absolute right-0 top-0 opacity-10"></i><p class="text-black text-sm font-black uppercase border-b-2 border-black inline-block mb-2">Total Visum</p><h3 class="text-5xl font-black text-blue-900 mt-2" id="stat-total">0</h3></div>
-                    <div class="hc-card p-6 relative overflow-hidden"><i class="fas fa-calendar-check text-8xl text-black absolute right-0 top-0 opacity-10"></i><p class="text-black text-sm font-black uppercase border-b-2 border-black inline-block mb-2">Bulan Ini</p><h3 class="text-5xl font-black text-green-900 mt-2" id="stat-month">0</h3></div>
-                    <div class="hc-card p-6 relative overflow-hidden"><i class="fas fa-clock text-8xl text-black absolute right-0 top-0 opacity-10"></i><p class="text-black text-sm font-black uppercase border-b-2 border-black inline-block mb-2">Pending</p><h3 class="text-5xl font-black text-red-900 mt-2" id="stat-pending">0</h3></div>
+                    <div class="hc-card p-6 bg-white border-none shadow-sm hover:shadow-md transition">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Visum</p>
+                                <h3 class="text-4xl font-bold text-blue-700 mt-2" id="stat-total">0</h3>
+                            </div>
+                            <div class="p-3 bg-blue-50 rounded-lg text-blue-600"><i class="fas fa-folder-open text-2xl"></i></div>
+                        </div>
+                    </div>
+                    
+                    <div class="hc-card p-6 bg-white border-none shadow-sm hover:shadow-md transition">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Bulan Ini</p>
+                                <h3 class="text-4xl font-bold text-emerald-700 mt-2" id="stat-month">0</h3>
+                            </div>
+                            <div class="p-3 bg-emerald-50 rounded-lg text-emerald-600"><i class="fas fa-calendar-check text-2xl"></i></div>
+                        </div>
+                    </div>
+                    
+                    <div class="hc-card p-6 bg-white border-none shadow-sm hover:shadow-md transition">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Pending</p>
+                                <h3 class="text-4xl font-bold text-orange-600 mt-2" id="stat-pending">0</h3>
+                            </div>
+                            <div class="p-3 bg-orange-50 rounded-lg text-orange-500"><i class="fas fa-clock text-2xl"></i></div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- DOKTER SPECIFIC: QUEUE & HISTORY LIST -->
                 <div id="doctor-panel" class="hidden mb-8">
-                    <div class="flex gap-4 mb-4">
-                        <button onclick="switchDocTab('queue')" id="tab-queue" class="flex-1 py-3 font-black uppercase border-2 text-center tab-active">Antrian Pasien</button>
-                        <button onclick="switchDocTab('history')" id="tab-history" class="flex-1 py-3 font-black uppercase border-2 text-center tab-inactive">Riwayat Pemeriksaan</button>
+                    <div class="flex gap-2 mb-4 bg-white p-1 rounded-lg border border-slate-200 w-fit">
+                        <button onclick="switchDocTab('queue')" id="tab-queue" class="px-6 py-2 rounded-md font-bold text-sm transition tab-active">Antrian Pasien</button>
+                        <button onclick="switchDocTab('history')" id="tab-history" class="px-6 py-2 rounded-md font-bold text-sm transition tab-inactive">Riwayat Pemeriksaan</button>
                     </div>
 
                     <!-- ANTRIAN -->
-                    <div id="panel-queue" class="hc-card p-6 border-l-8 border-blue-900">
-                        <h3 class="text-2xl font-black text-blue-900 uppercase mb-4 flex items-center gap-2"><i class="fas fa-user-md"></i> DAFTAR ANTRIAN SAYA</h3>
+                    <div id="panel-queue" class="hc-card p-6 border-t-4 border-blue-600">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fas fa-user-clock text-blue-600"></i> Daftar Antrian Saya</h3>
                         <div id="doctor-queue-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                     </div>
 
                     <!-- RIWAYAT -->
-                    <div id="panel-history" class="hidden hc-card p-6 border-l-8 border-green-900">
-                        <h3 class="text-2xl font-black text-green-900 uppercase mb-4 flex items-center gap-2"><i class="fas fa-history"></i> PASIEN SELESAI (EDIT MODE)</h3>
+                    <div id="panel-history" class="hidden hc-card p-6 border-t-4 border-emerald-600">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fas fa-history text-emerald-600"></i> Pasien Selesai (Edit Mode)</h3>
                         <div id="doctor-history-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                     </div>
                 </div>
@@ -151,101 +279,113 @@
 
             <!-- VIEW: INPUT ADMINISTRATIF (PERAWAT) -->
             <section id="view-input-admin" class="page-view hidden">
-                <div class="flex items-center justify-between mb-6 border-b-4 border-black pb-4">
-                     <h2 class="text-3xl font-black text-black uppercase">Input Visum Baru</h2>
-                     <button onclick="document.getElementById('form-visum').reset()" class="text-sm font-bold bg-slate-200 px-4 py-2 border-2 border-black hover:bg-slate-300"><i class="fas fa-redo"></i> RESET</button>
+                <div class="flex items-center justify-between mb-6">
+                     <div>
+                        <h2 class="text-2xl font-bold text-slate-800">Registrasi Visum Baru</h2>
+                        <p class="text-sm text-slate-500">Lengkapi data pasien dan SPVR</p>
+                     </div>
+                     <button onclick="document.getElementById('form-visum').reset()" class="text-sm font-semibold text-slate-500 hover:text-blue-600 flex items-center gap-2"><i class="fas fa-redo"></i> Reset</button>
                 </div>
-                <form id="form-visum" class="hc-card p-8 max-w-5xl" onsubmit="handleFormAdmin(event)">
+                <form id="form-visum" class="hc-card p-8 max-w-5xl bg-white border-none shadow-sm" onsubmit="handleFormAdmin(event)">
                      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                        <div class="space-y-6">
-                            <h3 class="text-lg font-black text-white bg-blue-900 px-3 py-1 inline-block uppercase tracking-wide">Data Pasien</h3>
-                            <div><label class="block text-sm font-bold mb-2 text-black uppercase">Nomor Registrasi (Auto)</label><input type="text" id="reg-number-preview" class="w-full bg-slate-200 text-slate-600 border-2 border-slate-400 p-3 font-bold" value="Loading..." readonly></div>
-                            <div><label class="block text-sm font-bold mb-2 text-black uppercase">Nomor Rekam Medis (RM)</label><input type="text" name="nomorRm" required class="w-full hc-input p-3" placeholder="Contoh: 12-34-56"></div>
-                            <div><label class="block text-sm font-bold mb-2 text-black uppercase">Nama Lengkap Pasien</label><input type="text" name="namaPasien" required class="w-full hc-input p-3"></div>
-                            <div><label class="block text-sm font-bold mb-2 text-black uppercase">Tanggal Kunjungan</label><input type="date" name="tglKunjungan" required class="w-full hc-input p-3 cursor-pointer"></div>
-                            <div><label class="block text-sm font-bold mb-2 text-black uppercase">Dokter Pemeriksa</label><select id="dokter-select" name="dokterPemeriksa" class="w-full hc-input p-3 cursor-pointer"><option>Loading Dokter...</option></select></div>
-                        </div>
-                        <div class="space-y-6">
-                            <h3 class="text-lg font-black text-white bg-blue-900 px-3 py-1 inline-block uppercase tracking-wide">Data Administrasi SPVR</h3>
-                            <div><label class="block text-sm font-bold mb-2 text-black uppercase">Nomor Surat (SPVR)</label><input type="text" name="noSpvr" required class="w-full hc-input p-3"></div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div><label class="text-xs font-bold text-black uppercase mb-1 block">Tgl Surat</label><input type="date" name="tglSpvr" required class="w-full hc-input p-3"></div>
-                                <div><label class="text-xs font-bold text-black uppercase mb-1 block">Tgl Diterima</label><input type="date" name="tglTerima" required class="w-full hc-input p-3"></div>
+                        <div class="space-y-5">
+                            <h3 class="text-sm font-bold text-blue-700 uppercase tracking-wider border-b pb-2">Data Pasien</h3>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nomor Registrasi (Auto)</label>
+                                <input type="text" id="reg-number-preview" class="w-full bg-slate-100 text-slate-500 border border-slate-300 p-2.5 rounded font-mono font-bold" value="Loading..." readonly>
                             </div>
-                            <div><label class="block text-sm font-bold mb-2 text-black uppercase">Instansi Pengirim</label><select name="sumberSpvr" class="w-full hc-input p-3"><option>Polres</option><option>Polsek</option><option>Lainnya</option></select></div>
-                            <div class="border-2 border-black p-4 bg-slate-50">
-                                <label class="block text-sm font-black mb-2 text-black uppercase">Upload Dokumen (PDF)</label>
-                                <input id="file-resume" type="file" class="block w-full text-sm font-bold file:mr-4 file:py-2 file:px-4 file:border-2 file:border-black file:bg-yellow-400 hover:file:bg-yellow-500" accept="application/pdf" />
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nomor Rekam Medis (RM)</label><input type="text" name="nomorRm" required class="w-full hc-input p-2.5 rounded" placeholder="Contoh: 12-34-56"></div>
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nama Lengkap Pasien</label><input type="text" name="namaPasien" required class="w-full hc-input p-2.5 rounded"></div>
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tanggal Kunjungan</label><input type="date" name="tglKunjungan" required class="w-full hc-input p-2.5 rounded cursor-pointer"></div>
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Dokter Pemeriksa</label><select id="dokter-select" name="dokterPemeriksa" class="w-full hc-input p-2.5 rounded cursor-pointer"><option>Loading Dokter...</option></select></div>
+                        </div>
+                        <div class="space-y-5">
+                            <h3 class="text-sm font-bold text-blue-700 uppercase tracking-wider border-b pb-2">Data Administrasi SPVR</h3>
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nomor Surat (SPVR)</label><input type="text" name="noSpvr" required class="w-full hc-input p-2.5 rounded"></div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Tgl Surat</label><input type="date" name="tglSpvr" required class="w-full hc-input p-2.5 rounded"></div>
+                                <div><label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Tgl Diterima</label><input type="date" name="tglTerima" required class="w-full hc-input p-2.5 rounded"></div>
+                            </div>
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Instansi Pengirim</label><select name="sumberSpvr" class="w-full hc-input p-2.5 rounded"><option>Polres</option><option>Polsek</option><option>Lainnya</option></select></div>
+                            <div class="border-2 border-slate-300 border-dashed rounded-lg p-4 bg-slate-50 hover:bg-white transition">
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2 text-center">Upload Dokumen (PDF)</label>
+                                <input id="file-resume" type="file" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" accept="application/pdf" />
                             </div>
                         </div>
                     </div>
-                    <button type="submit" class="w-full bg-blue-900 text-white py-4 font-black text-xl hover:bg-blue-800 border-4 border-black shadow-[4px_4px_0px_#000] active:shadow-none active:translate-y-[4px] transition-all flex items-center justify-center gap-3" id="btn-submit-admin"><i class="fas fa-paper-plane"></i> SIMPAN DATA</button>
+                    <button type="submit" class="w-full bg-blue-700 text-white py-3 rounded-lg font-bold hover:bg-blue-800 shadow-lg shadow-blue-500/30 transition flex items-center justify-center gap-2" id="btn-submit-admin">
+                        <i class="fas fa-save"></i> SIMPAN DATA
+                    </button>
                 </form>
             </section>
 
             <!-- VIEW: PEMERIKSAAN MEDIS (EDIT/INPUT/VIEW) -->
             <section id="view-input-medis" class="page-view hidden">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b-4 border-black pb-4">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                     <div class="flex items-center gap-4">
-                        <button onclick="nav(currentUser.role === 'Dokter' ? 'dashboard' : 'search')" class="bg-slate-200 p-2 border-2 border-black hover:bg-slate-300"><i class="fas fa-arrow-left"></i></button>
-                        <h2 class="text-3xl font-black text-black uppercase">Data Visum Pasien</h2>
+                        <button onclick="nav(currentUser.role === 'Dokter' ? 'dashboard' : 'search')" class="bg-white p-2 rounded border border-slate-300 hover:bg-slate-50 text-slate-600"><i class="fas fa-arrow-left"></i></button>
+                        <h2 class="text-2xl font-bold text-slate-800">Data Visum Pasien</h2>
                     </div>
-                    <!-- Status Badge Display -->
                     <div id="view-status-badge"></div>
                 </div>
                 
-                <div class="hc-card p-6 mb-6 bg-yellow-50">
+                <div class="hc-card p-6 mb-6 bg-blue-50 border border-blue-100">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><p class="text-xs font-bold text-slate-500 uppercase">Pasien</p><p class="text-2xl font-black text-black" id="medis-nama-pasien">-</p></div>
-                        <div><p class="text-xs font-bold text-slate-500 uppercase">Nomor RM</p><p class="text-xl font-black text-black" id="medis-rm">-</p></div>
+                        <div><p class="text-xs font-bold text-slate-500 uppercase">Pasien</p><p class="text-xl font-bold text-slate-800" id="medis-nama-pasien">-</p></div>
+                        <div><p class="text-xs font-bold text-slate-500 uppercase">Nomor RM</p><p class="text-xl font-bold text-slate-800 font-mono" id="medis-rm">-</p></div>
                     </div>
                     <input type="hidden" id="medis-visum-id">
                 </div>
 
-                <div id="existing-photos-container" class="hidden hc-card p-6 mb-8 border-l-8 border-orange-500">
-                    <h3 class="text-xl font-black text-black uppercase mb-4 flex items-center gap-2"><i class="fas fa-images"></i> Foto Dokumentasi</h3>
-                    <div id="existing-photos-loader" class="hidden text-center py-4 font-bold animate-pulse text-slate-600">SEDANG MEMUAT FOTO...</div>
+                <div id="existing-photos-container" class="hidden mb-8">
+                    <h3 class="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-images text-blue-600"></i> Foto Dokumentasi</h3>
+                    <div id="existing-photos-loader" class="hidden text-center py-8 font-bold animate-pulse text-slate-400">
+                        <div class="loader mx-auto mb-2"></div> SEDANG MEMUAT FOTO...
+                    </div>
                     <div id="existing-photos-list" class="space-y-4"></div>
                 </div>
 
-                <!-- ADD NEW PHOTO SECTION (HIDDEN FOR ADMIN VIEW) -->
-                <div id="new-photo-section" class="hc-card p-8">
-                    <h3 class="text-xl font-black text-black uppercase mb-4 flex items-center gap-2"><i class="fas fa-plus-circle"></i> Tambah Foto Baru</h3>
-                    <div class="border-4 border-dashed border-black bg-slate-50 p-8 text-center mb-6 hover:bg-blue-50 transition cursor-pointer" onclick="document.getElementById('file-foto-multi').click()">
-                        <i class="fas fa-camera text-6xl text-black mb-4"></i>
-                        <h3 class="font-black text-2xl text-black uppercase">Pilih Foto</h3>
+                <!-- ADD NEW PHOTO SECTION -->
+                <div id="new-photo-section" class="hc-card p-8 bg-white border-none shadow-sm">
+                    <h3 class="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-plus-circle text-emerald-600"></i> Tambah Foto Baru</h3>
+                    <div class="border-2 border-dashed border-slate-300 bg-slate-50 rounded-xl p-8 text-center mb-6 hover:bg-white hover:border-blue-400 transition cursor-pointer" onclick="document.getElementById('file-foto-multi').click()">
+                        <i class="fas fa-camera text-4xl text-slate-300 mb-2"></i>
+                        <h3 class="font-bold text-slate-600">Klik untuk Pilih Foto</h3>
+                        <p class="text-xs text-slate-400">Support multiple upload</p>
                         <input type="file" id="file-foto-multi" multiple accept="image/*" class="hidden" onchange="handleFileSelect(event)">
                     </div>
                     <div id="photo-input-container" class="space-y-4 mb-8"></div>
-                    <button onclick="submitMedicalData()" class="w-full bg-green-800 text-white py-4 font-black text-xl hover:bg-green-700 border-4 border-black shadow-[4px_4px_0px_#000] active:shadow-none active:translate-y-[4px] transition-all flex items-center justify-center gap-3" id="btn-submit-medis"><i class="fas fa-check-double"></i> SIMPAN PERUBAHAN</button>
+                    <button onclick="submitMedicalData()" class="w-full bg-emerald-600 text-white py-3 rounded-lg font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-500/30 transition flex items-center justify-center gap-2" id="btn-submit-medis">
+                        <i class="fas fa-check-circle"></i> SIMPAN PERUBAHAN
+                    </button>
                 </div>
             </section>
 
             <!-- VIEW: SEARCH / DATA PASIEN -->
             <section id="view-search" class="page-view hidden">
-                <div class="flex flex-col md:flex-row justify-between items-center mb-6 border-b-4 border-black pb-4 gap-4">
-                    <h2 class="text-3xl font-black text-black uppercase" id="title-search-view">Pencarian Data</h2>
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <h2 class="text-2xl font-bold text-slate-800" id="title-search-view">Pencarian Data</h2>
                     <div class="w-full md:w-auto relative">
-                        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-black"></i>
-                        <input type="text" id="search-input" placeholder="CARI PASIEN..." class="w-full md:w-80 pl-10 pr-4 py-2 border-2 border-black bg-white focus:bg-yellow-50 font-bold uppercase outline-none" onkeyup="if(event.key === 'Enter') doSearch()">
+                        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="search-input" placeholder="Cari Nama / RM..." class="w-full md:w-80 pl-10 pr-4 py-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none transition" onkeyup="if(event.key === 'Enter') doSearch()">
                     </div>
                 </div>
                 
                 <!-- TABLE VIEW FOR ADMIN -->
-                <div id="admin-table-container" class="hidden overflow-x-auto">
-                    <table class="w-full text-sm text-left border-collapse border-2 border-black">
-                        <thead class="bg-slate-900 text-white uppercase font-bold">
+                <div id="admin-table-container" class="hidden overflow-x-auto bg-white rounded-xl shadow-sm border border-slate-200">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-slate-50 text-slate-600 uppercase font-bold text-xs border-b border-slate-200">
                             <tr>
-                                <th class="px-4 py-3 border border-black cursor-pointer hover:bg-slate-700" onclick="sortPatients('noReg')">No Reg <span id="sort-noReg" class="sort-icon"></span></th>
-                                <th class="px-4 py-3 border border-black cursor-pointer hover:bg-slate-700" onclick="sortPatients('tgl')">Tanggal <span id="sort-tgl" class="sort-icon"></span></th>
-                                <th class="px-4 py-3 border border-black cursor-pointer hover:bg-slate-700" onclick="sortPatients('nama')">Nama Pasien <span id="sort-nama" class="sort-icon"></span></th>
-                                <th class="px-4 py-3 border border-black cursor-pointer hover:bg-slate-700" onclick="sortPatients('rm')">RM <span id="sort-rm" class="sort-icon"></span></th>
-                                <th class="px-4 py-3 border border-black">Dokter</th>
-                                <th class="px-4 py-3 border border-black">Status</th>
-                                <th class="px-4 py-3 border border-black text-center">Aksi</th>
+                                <th class="px-6 py-4 cursor-pointer hover:text-blue-600" onclick="sortPatients('noReg')">No Reg <span id="sort-noReg" class="sort-icon"></span></th>
+                                <th class="px-6 py-4 cursor-pointer hover:text-blue-600" onclick="sortPatients('tgl')">Tanggal <span id="sort-tgl" class="sort-icon"></span></th>
+                                <th class="px-6 py-4 cursor-pointer hover:text-blue-600" onclick="sortPatients('nama')">Nama Pasien <span id="sort-nama" class="sort-icon"></span></th>
+                                <th class="px-6 py-4 cursor-pointer hover:text-blue-600" onclick="sortPatients('rm')">RM <span id="sort-rm" class="sort-icon"></span></th>
+                                <th class="px-6 py-4">Dokter</th>
+                                <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="patient-table-body" class="bg-white font-bold text-black"></tbody>
+                        <tbody id="patient-table-body" class="text-slate-700 divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
 
@@ -255,31 +395,33 @@
 
              <!-- VIEW: USERS (ADMIN ONLY) -->
             <section id="view-users" class="page-view hidden">
-                 <h2 class="text-3xl font-black text-black uppercase mb-6">User Manager</h2>
-                 <div class="hc-card p-4">
-                    <button onclick="loadUsers()" class="bg-blue-900 text-white p-2 mb-4 font-bold border-2 border-black hover:bg-blue-800 uppercase text-sm"><i class="fas fa-sync"></i> Refresh List</button>
-                    <div id="user-table-body" class="space-y-2 mt-4"></div>
+                 <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-slate-800">User Manager</h2>
+                    <button onclick="loadUsers()" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-bold border border-blue-200 hover:bg-blue-50 text-sm flex items-center gap-2"><i class="fas fa-sync"></i> Refresh</button>
+                 </div>
+                 <div class="hc-card p-0 bg-white border-none shadow-sm overflow-hidden">
+                    <div id="user-table-body" class="divide-y divide-slate-100"></div>
                  </div>
             </section>
 
             <!-- MODAL: EDIT USER -->
-            <div id="edit-user-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 p-4">
-                <div class="hc-card w-full max-w-lg p-6 relative animate-[fadeIn_0.2s_ease-out]">
-                    <button onclick="closeEditModal()" class="absolute top-4 right-4 text-xl font-bold hover:text-red-600">X</button>
-                    <h3 class="text-2xl font-black uppercase mb-6 border-b-4 border-black pb-2">Edit Profil User</h3>
+            <div id="edit-user-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+                <div class="bg-white w-full max-w-lg p-8 rounded-2xl shadow-2xl relative animate-[fadeIn_0.2s_ease-out]">
+                    <button onclick="closeEditModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+                    <h3 class="text-xl font-bold text-slate-800 mb-6 pb-2 border-b border-slate-100">Edit Profil User</h3>
                     
                     <form onsubmit="handleUpdateUser(event)" class="space-y-4">
                         <input type="hidden" id="edit-email-target">
-                        <div><label class="block text-xs font-bold uppercase mb-1">Email (ID)</label><input type="text" id="edit-email-display" disabled class="w-full bg-slate-200 border-2 border-slate-400 p-2 font-mono font-bold text-slate-600"></div>
-                        <div><label class="block text-xs font-bold uppercase mb-1">Nama Lengkap & Gelar</label><input type="text" id="edit-nama" required class="w-full hc-input p-2"></div>
-                        <div><label class="block text-xs font-bold uppercase mb-1">Nomor HP / WhatsApp</label><input type="text" id="edit-hp" required class="w-full hc-input p-2"></div>
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email (ID)</label><input type="text" id="edit-email-display" disabled class="w-full bg-slate-100 border border-slate-300 px-3 py-2 rounded text-slate-600 font-medium"></div>
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nama Lengkap</label><input type="text" id="edit-nama" required class="w-full hc-input px-3 py-2 rounded"></div>
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nomor HP</label><input type="text" id="edit-hp" required class="w-full hc-input px-3 py-2 rounded"></div>
                         <div class="grid grid-cols-2 gap-4">
-                            <div><label class="block text-xs font-bold uppercase mb-1">Role Akses</label><select id="edit-role" class="w-full hc-input p-2"><option value="Perawat">Perawat</option><option value="Dokter">Dokter</option><option value="Admin">Admin</option></select></div>
-                            <div><label class="block text-xs font-bold uppercase mb-1">Status Akun</label><select id="edit-status" class="w-full hc-input p-2"><option value="Aktif">Aktif</option><option value="Nonaktif">Nonaktif</option></select></div>
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Role</label><select id="edit-role" class="w-full hc-input px-3 py-2 rounded"><option value="Perawat">Perawat</option><option value="Dokter">Dokter</option><option value="Admin">Admin</option></select></div>
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label><select id="edit-status" class="w-full hc-input px-3 py-2 rounded"><option value="Aktif">Aktif</option><option value="Nonaktif">Nonaktif</option></select></div>
                         </div>
-                        <div class="pt-4 flex gap-3">
-                            <button type="button" onclick="closeEditModal()" class="flex-1 py-3 font-bold border-2 border-black hover:bg-slate-100 uppercase">Batal</button>
-                            <button type="submit" id="btn-save-user" class="flex-1 py-3 bg-green-800 text-white font-bold border-2 border-black hover:bg-green-700 uppercase shadow-[4px_4px_0px_#000]">Simpan</button>
+                        <div class="pt-6 flex gap-3">
+                            <button type="button" onclick="closeEditModal()" class="flex-1 py-2.5 font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg">Batal</button>
+                            <button type="submit" id="btn-save-user" class="flex-1 py-2.5 bg-blue-600 text-white font-bold hover:bg-blue-700 rounded-lg shadow-md">Simpan</button>
                         </div>
                     </form>
                 </div>
@@ -290,6 +432,26 @@
 
     <!-- LOGIC SCRIPT -->
     <script>
+        // ... (Include TSParticles Init Code Here) ...
+        tsParticles.load("tsparticles", {
+            fpsLimit: 60,
+            particles: {
+                color: { value: "#ffffff" },
+                links: { color: "#ffffff", distance: 150, enable: true, opacity: 0.2, width: 1 },
+                move: { enable: true, speed: 1.5, direction: "none", random: false, straight: false, outModes: "out" },
+                number: { density: { enable: true, area: 800 }, value: 60 },
+                opacity: { value: 0.3 },
+                shape: { type: "circle" },
+                size: { value: { min: 1, max: 3 } }
+            },
+            interactivity: {
+                events: { onHover: { enable: true, mode: "grab" }, onClick: { enable: true, mode: "push" } },
+                modes: { grab: { distance: 140, links: { opacity: 0.5 } } }
+            },
+            detectRetina: true
+        });
+
+        // ... (Rest of the application logic from previous correct version) ...
         let currentUser = null;
         let selectedPhotos = []; 
         let currentVisumData = null;
@@ -321,7 +483,7 @@
 
         function handleCredentialResponse(response) {
             let email = JSON.parse(atob(response.credential.split('.')[1])).email;
-            showToast("LOGIN...", "info");
+            showToast("Memproses Login...", "info");
             callAPI("login", { token: response.credential, email: email }).then(res => {
                 if (res.status === 'success') {
                     onLoginSuccess(res.user, true);
@@ -362,13 +524,12 @@
             if (user.role === 'Perawat' || user.role === 'Admin' || user.role === 'Super Admin') nav('nav-perawat');
             if (user.role === 'Admin' || user.role === 'Super Admin') { nav('nav-users'); nav('nav-admin-divider'); }
             
-            // ADMIN UI ADJUSTMENT
             if (user.role === 'Admin' || user.role === 'Super Admin') {
                 document.getElementById('label-search').innerText = "Data Pasien";
                 document.getElementById('title-search-view').innerText = "Data Pasien & Arsip";
                 document.getElementById('admin-table-container').classList.remove('hidden');
                 document.getElementById('search-results').classList.add('hidden');
-                doSearch(); // Auto load data
+                doSearch(); 
             } else {
                 document.getElementById('label-search').innerText = "Pencarian";
                 document.getElementById('title-search-view').innerText = "Pencarian Data";
@@ -406,12 +567,12 @@
             const btnHistory = document.getElementById('tab-history');
             if(tab === 'queue') {
                 queuePanel.classList.remove('hidden'); historyPanel.classList.add('hidden');
-                btnQueue.className = "flex-1 py-3 font-black uppercase border-2 text-center tab-active";
-                btnHistory.className = "flex-1 py-3 font-black uppercase border-2 text-center tab-inactive";
+                btnQueue.className = "px-6 py-2 rounded-md font-bold text-sm transition tab-active";
+                btnHistory.className = "px-6 py-2 rounded-md font-bold text-sm transition tab-inactive";
             } else {
                 queuePanel.classList.add('hidden'); historyPanel.classList.remove('hidden');
-                btnQueue.className = "flex-1 py-3 font-black uppercase border-2 text-center tab-inactive";
-                btnHistory.className = "flex-1 py-3 font-black uppercase border-2 text-center tab-active";
+                btnQueue.className = "px-6 py-2 rounded-md font-bold text-sm transition tab-inactive";
+                btnHistory.className = "px-6 py-2 rounded-md font-bold text-sm transition tab-active";
             }
         }
 
@@ -421,12 +582,12 @@
             const res = await callAPI("get_doctor_queue", { userEmail: currentUser.email });
             if(res.status === 'success') {
                 listDiv.innerHTML = '';
-                if(res.queue.length === 0) listDiv.innerHTML = '<p class="text-slate-500 italic">Tidak ada antrian.</p>';
+                if(res.queue.length === 0) listDiv.innerHTML = '<p class="text-slate-400 italic text-sm p-4">Tidak ada antrian pasien saat ini.</p>';
                 else {
                     res.queue.forEach(q => {
                         const card = document.createElement('div');
-                        card.className = "bg-white border-4 border-black p-4 hover:shadow-lg transition flex justify-between items-center";
-                        card.innerHTML = `<div><h4 class="font-black text-xl text-black uppercase">${q.nama}</h4><p class="text-sm font-bold text-slate-600 bg-slate-200 px-2 inline-block">RM: ${q.rm}</p></div><button onclick='openMedicalEditor("${q.visumId}")' class="bg-blue-900 text-white px-4 py-2 font-black border-2 border-black hover:bg-blue-800">PERIKSA <i class="fas fa-arrow-right"></i></button>`;
+                        card.className = "bg-white border-l-4 border-blue-500 p-4 shadow-sm hover:shadow-md transition flex justify-between items-center rounded-r-lg";
+                        card.innerHTML = `<div><h4 class="font-bold text-lg text-slate-800">${q.nama}</h4><p class="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded inline-block mt-1">RM: ${q.rm}</p></div><button onclick='openMedicalEditor("${q.visumId}")' class="bg-blue-600 text-white px-4 py-2 rounded text-xs font-bold hover:bg-blue-700 transition">PERIKSA</button>`;
                         listDiv.appendChild(card);
                     });
                 }
@@ -439,12 +600,12 @@
             const res = await callAPI("get_doctor_history", { userEmail: currentUser.email });
             if(res.status === 'success') {
                 listDiv.innerHTML = '';
-                if(res.history.length === 0) listDiv.innerHTML = '<p class="text-slate-500 italic">Belum ada riwayat.</p>';
+                if(res.history.length === 0) listDiv.innerHTML = '<p class="text-slate-400 italic text-sm p-4">Belum ada riwayat pemeriksaan.</p>';
                 else {
                     res.history.forEach(q => {
                         const card = document.createElement('div');
-                        card.className = "bg-white border-4 border-black p-4 hover:shadow-lg transition flex justify-between items-center bg-green-50";
-                        card.innerHTML = `<div><h4 class="font-black text-xl text-black uppercase">${q.nama}</h4><p class="text-sm font-bold text-slate-600 bg-slate-200 px-2 inline-block">RM: ${q.rm}</p></div><button onclick='openMedicalEditor("${q.visumId}")' class="bg-green-800 text-white px-4 py-2 font-black border-2 border-black hover:bg-green-700">EDIT <i class="fas fa-edit"></i></button>`;
+                        card.className = "bg-white border-l-4 border-emerald-500 p-4 shadow-sm hover:shadow-md transition flex justify-between items-center rounded-r-lg";
+                        card.innerHTML = `<div><h4 class="font-bold text-lg text-slate-800">${q.nama}</h4><p class="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded inline-block mt-1">RM: ${q.rm}</p></div><button onclick='openMedicalEditor("${q.visumId}")' class="bg-emerald-600 text-white px-4 py-2 rounded text-xs font-bold hover:bg-emerald-700 transition">EDIT</button>`;
                         listDiv.appendChild(card);
                     });
                 }
@@ -454,16 +615,13 @@
         async function openMedicalEditor(visumId) { 
             nav('input-medis'); 
             
-            // Logic for "View Mode" vs "Edit Mode"
             const isAdminView = (currentUser.role === 'Admin' || currentUser.role === 'Super Admin');
             const uploadSection = document.getElementById('new-photo-section');
             
             if (isAdminView) {
-                // If Admin, just VIEW. Hide upload.
                 uploadSection.classList.add('hidden');
-                document.getElementById('view-status-badge').innerHTML = `<span class="bg-blue-100 text-blue-800 px-4 py-1 font-bold border-2 border-blue-800 uppercase text-xs">MODE LIHAT (ADMIN)</span>`;
+                document.getElementById('view-status-badge').innerHTML = `<span class="bg-blue-100 text-blue-800 px-3 py-1 font-bold rounded-full text-xs border border-blue-200">MODE LIHAT (ADMIN)</span>`;
             } else {
-                // If Doctor, allow edit
                 uploadSection.classList.remove('hidden');
                 document.getElementById('view-status-badge').innerHTML = ``;
             }
@@ -472,7 +630,6 @@
         }
 
         async function viewVisumRecord(visumId) {
-            // Function wrapper for the "LIHAT" button
             await openMedicalEditor(visumId);
         }
 
@@ -497,7 +654,6 @@
                 const existingDiv = document.getElementById('existing-photos-list');
                 const container = document.getElementById('existing-photos-container');
                 
-                // Permission Check for Delete/Edit Buttons inside Photo List
                 const canEdit = (currentUser.role === 'Dokter' || currentUser.role === 'Super Admin');
 
                 if(res.photos.length > 0) {
@@ -505,25 +661,24 @@
                     existingDiv.innerHTML = '';
                     res.photos.forEach(photo => {
                         let imgSrc = photo.url;
-                        let imgElem = !imgSrc ? `<div class="w-full h-full bg-slate-200 flex items-center justify-center font-bold text-red-500">GAMBAR GAGAL LOAD</div>` : `<img src="${imgSrc}" class="w-full h-full object-cover">`;
+                        let imgElem = !imgSrc ? `<div class="w-full h-full bg-slate-100 flex items-center justify-center font-bold text-slate-400 text-xs">IMG ERROR</div>` : `<img src="${imgSrc}" class="w-full h-full object-cover">`;
                         
-                        // Only show buttons if authorized
                         let actionButtons = '';
                         if (canEdit) {
                             actionButtons = `
-                            <div class="flex gap-2">
-                                <button onclick="updateCaption('${photo.photoId}')" class="bg-blue-600 text-white px-3 py-1 text-xs font-bold border border-black hover:bg-blue-700">UPDATE TEKS</button>
-                                <button onclick="deletePhoto('${photo.photoId}', '${photo.fileId}')" class="bg-red-600 text-white px-3 py-1 text-xs font-bold border border-black hover:bg-red-700">HAPUS FOTO</button>
+                            <div class="flex gap-2 mt-2">
+                                <button onclick="updateCaption('${photo.photoId}')" class="bg-blue-100 text-blue-700 px-3 py-1 text-xs font-bold rounded hover:bg-blue-200 transition">Update Teks</button>
+                                <button onclick="deletePhoto('${photo.photoId}', '${photo.fileId}')" class="bg-red-100 text-red-700 px-3 py-1 text-xs font-bold rounded hover:bg-red-200 transition">Hapus Foto</button>
                             </div>`;
                         }
 
                         const el = document.createElement('div');
-                        el.className = "bg-white border-2 border-slate-300 p-4 flex flex-col md:flex-row gap-4 items-start";
+                        el.className = "bg-white border border-slate-200 p-4 flex flex-col md:flex-row gap-4 items-start rounded-xl shadow-sm";
                         el.innerHTML = `
-                            <div class="w-full md:w-1/3 aspect-video bg-black overflow-hidden border-2 border-black">${imgElem}</div>
+                            <div class="w-full md:w-1/3 aspect-video bg-slate-50 overflow-hidden rounded-lg border border-slate-100">${imgElem}</div>
                             <div class="w-full md:w-2/3">
-                                <label class="block text-xs font-bold uppercase mb-1">Keterangan</label>
-                                <textarea id="caption-${photo.photoId}" class="w-full hc-input p-2 h-20 mb-2" ${!canEdit ? 'disabled' : ''}>${photo.caption}</textarea>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Keterangan Foto</label>
+                                <textarea id="caption-${photo.photoId}" class="w-full bg-slate-50 border border-slate-200 rounded p-2 text-sm text-slate-700 h-24 focus:outline-none focus:ring-2 focus:ring-blue-100" ${!canEdit ? 'disabled' : ''}>${photo.caption}</textarea>
                                 ${actionButtons}
                             </div>`;
                         existingDiv.appendChild(el);
@@ -566,8 +721,8 @@
             container.innerHTML = '';
             selectedPhotos.forEach((item, index) => {
                 const div = document.createElement('div');
-                div.className = "bg-white border-2 border-slate-300 p-4 flex flex-col md:flex-row gap-4 items-start";
-                div.innerHTML = `<div class="w-full md:w-1/3 aspect-video bg-black overflow-hidden border-2 border-black relative group"><img src="${item.previewUrl}" class="w-full h-full object-cover"><button onclick="removePhoto(${index})" class="absolute top-2 right-2 bg-red-600 text-white w-8 h-8 font-bold border-2 border-white hover:bg-red-700">X</button></div><div class="w-full md:w-2/3"><label class="block text-xs font-bold uppercase mb-1">Keterangan Foto Baru</label><textarea oninput="updateNewCaption(${index}, this.value)" class="w-full hc-input p-2 h-24" placeholder="Ketik keterangan...">${item.caption}</textarea></div>`;
+                div.className = "bg-white border border-slate-200 p-4 flex flex-col md:flex-row gap-4 items-start rounded-xl";
+                div.innerHTML = `<div class="w-full md:w-1/3 aspect-video bg-slate-50 overflow-hidden rounded-lg border border-slate-100 relative group"><img src="${item.previewUrl}" class="w-full h-full object-cover"><button onclick="removePhoto(${index})" class="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs shadow-md hover:bg-red-600 transition">✕</button></div><div class="w-full md:w-2/3"><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Keterangan Foto Baru</label><textarea oninput="updateNewCaption(${index}, this.value)" class="w-full bg-slate-50 border border-slate-200 rounded p-2 text-sm text-slate-700 h-24 focus:outline-none focus:ring-2 focus:ring-blue-100" placeholder="Ketik keterangan...">${item.caption}</textarea></div>`;
                 container.appendChild(div);
             });
         }
@@ -619,7 +774,7 @@
             try { return await (await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: a, ...d }) })).json(); }
             catch (e) { return { status: "error", message: "Koneksi Gagal" }; }
         }
-        function showToast(m, t) { const el = document.getElementById('toast'); document.getElementById('toast-message').innerText = m.toUpperCase(); el.classList.remove('translate-x-full'); setTimeout(() => el.classList.add('translate-x-full'), 3000); }
+        function showToast(m, t) { const el = document.getElementById('toast'); document.getElementById('toast-message').innerText = m; el.classList.remove('translate-x-full'); setTimeout(() => el.classList.add('translate-x-full'), 3000); }
         function populateDoctors(l) { document.getElementById('dokter-select').innerHTML = "<option>Pilih Dokter...</option>" + (l||[]).map(d=>`<option>${d}</option>`).join(''); }
         function logout() { localStorage.removeItem('visumAppState'); location.reload(); }
         
@@ -635,7 +790,6 @@
             if(file) { const r = new FileReader(); r.onload=()=>{ payload.fileResumeData=r.result.split(',')[1]; payload.fileResumeName=file.name; send(payload); }; r.readAsDataURL(file); } else send(payload);
         }
         
-        // --- SEARCH & SORTING ---
         async function doSearch() {
             const k = document.getElementById('search-input').value;
             const isAdmin = (currentUser.role === 'Admin' || currentUser.role === 'Super Admin');
@@ -643,9 +797,9 @@
             const res = await callAPI('search_patient', {keyword: k, userEmail: currentUser.email});
             
             if(!res.data || res.data.length === 0) {
-                const emptyMsg = `<div class="text-center p-8 text-black font-bold bg-slate-100 border-2 border-black uppercase">Data tidak ditemukan.</div>`;
+                const emptyMsg = `<div class="text-center p-8 text-slate-400 bg-slate-50 rounded-lg border border-dashed border-slate-300 italic">Data tidak ditemukan.</div>`;
                 document.getElementById('search-results').innerHTML = emptyMsg;
-                document.getElementById('patient-table-body').innerHTML = `<tr><td colspan="7" class="p-4 text-center">${emptyMsg}</td></tr>`;
+                document.getElementById('patient-table-body').innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-400 italic">Data tidak ditemukan.</td></tr>`;
                 return;
             }
 
@@ -668,22 +822,25 @@
         function renderTable(data) {
             const tbody = document.getElementById('patient-table-body');
             tbody.innerHTML = data.map(d => `
-                <tr class="hover:bg-yellow-50 border-b border-black">
-                    <td class="px-4 py-3">${d.noReg || '-'}</td>
-                    <td class="px-4 py-3">${new Date(d.tgl).toLocaleDateString()}</td>
-                    <td class="px-4 py-3 uppercase">${d.nama}</td>
-                    <td class="px-4 py-3 font-mono">${d.rm}</td>
-                    <td class="px-4 py-3">${d.dokter}</td>
-                    <td class="px-4 py-3">
-                        ${d.resume ? `<span class="text-white bg-green-800 px-2 py-1 text-xs font-black uppercase rounded"><i class="fas fa-check"></i> SELESAI</span>` : `<span class="text-black bg-yellow-400 px-2 py-1 text-xs font-black uppercase rounded"><i class="fas fa-clock"></i> PENDING</span>`}
+                <tr class="hover:bg-blue-50 border-b border-slate-100 transition">
+                    <td class="px-6 py-4 font-mono text-slate-600">${d.noReg || '-'}</td>
+                    <td class="px-6 py-4 text-slate-600">${new Date(d.tgl).toLocaleDateString()}</td>
+                    <td class="px-6 py-4 font-bold text-slate-800">${d.nama}</td>
+                    <td class="px-6 py-4 font-mono text-slate-500">${d.rm}</td>
+                    <td class="px-6 py-4 text-slate-600">${d.dokter}</td>
+                    <td class="px-6 py-4">
+                        ${d.resume ? 
+                            `<span class="text-emerald-700 bg-emerald-100 px-2 py-1 text-xs font-bold rounded-full border border-emerald-200"><i class="fas fa-check"></i> Selesai</span>` : 
+                            `<span class="text-amber-700 bg-amber-100 px-2 py-1 text-xs font-bold rounded-full border border-amber-200"><i class="fas fa-clock"></i> Pending</span>`
+                        }
                     </td>
-                    <td class="px-4 py-3 text-center flex justify-center gap-2">
-                        <button onclick="viewVisumRecord('${d.id}')" class="text-xs bg-blue-600 text-white px-3 py-2 rounded-none border-2 border-black hover:bg-blue-700 font-bold uppercase shadow-[2px_2px_0px_#000] active:shadow-none active:translate-y-[2px] transition-all">
-                            <i class="fas fa-eye"></i> LIHAT
+                    <td class="px-6 py-4 text-center flex justify-center gap-2">
+                        <button onclick="viewVisumRecord('${d.id}')" class="text-xs bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 font-bold transition shadow-sm">
+                            <i class="fas fa-eye"></i> Lihat
                         </button>
                         ${(currentUser.role === 'Super Admin') ? 
-                            `<button onclick="deleteVisum('${d.id}', '${d.nama}')" class="text-xs bg-red-600 text-white px-3 py-2 rounded-none border-2 border-black hover:bg-red-700 font-bold uppercase shadow-[2px_2px_0px_#000] active:shadow-none active:translate-y-[2px] transition-all">
-                                <i class="fas fa-trash-alt"></i> HAPUS
+                            `<button onclick="deleteVisum('${d.id}', '${d.nama}')" class="text-xs bg-red-100 text-red-600 px-3 py-1.5 rounded hover:bg-red-200 font-bold transition">
+                                <i class="fas fa-trash-alt"></i> Hapus
                             </button>` : ''
                         }
                     </td>
@@ -694,14 +851,17 @@
         function renderCards(data) {
             const div = document.getElementById('search-results');
             div.innerHTML = data.map(d => `
-                <div class="bg-white p-5 border-4 border-black flex flex-col md:flex-row justify-between items-center hover:bg-yellow-50 transition gap-4">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col md:flex-row justify-between items-center gap-4">
                     <div>
-                        <div class="font-black text-xl text-black uppercase">${d.nama}</div>
-                        <div class="text-base text-black font-bold bg-slate-200 px-2 inline-block mt-1 border border-black">RM: ${d.rm}</div>
-                        <div class="text-sm text-slate-800 mt-1 font-bold"><i class="far fa-calendar-alt"></i> ${new Date(d.tgl).toLocaleDateString()} &bull; ${d.dokter}</div>
+                        <div class="font-bold text-lg text-slate-800">${d.nama}</div>
+                        <div class="text-xs font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded inline-block mt-1">RM: ${d.rm}</div>
+                        <div class="text-xs text-slate-400 mt-1 flex items-center gap-2"><i class="far fa-calendar-alt"></i> ${new Date(d.tgl).toLocaleDateString()} &bull; <i class="fas fa-user-md"></i> ${d.dokter}</div>
                     </div>
                     <div class="text-right w-full md:w-auto">
-                        ${d.resume ? `<span class="text-white bg-green-800 px-4 py-2 text-sm font-black border-2 border-black uppercase block md:inline-block text-center"><i class="fas fa-check"></i> SELESAI</span>` : `<span class="text-black bg-yellow-400 px-4 py-2 text-sm font-black border-2 border-black uppercase block md:inline-block text-center"><i class="fas fa-clock"></i> PENDING</span>`}
+                        ${d.resume ? 
+                            `<span class="text-emerald-700 bg-emerald-100 px-3 py-1 text-xs font-bold rounded-full"><i class="fas fa-check"></i> Selesai</span>` : 
+                            `<span class="text-amber-700 bg-amber-100 px-3 py-1 text-xs font-bold rounded-full"><i class="fas fa-clock"></i> Pending</span>`
+                        }
                     </div>
                 </div>`).join('');
         }
@@ -715,23 +875,30 @@
         async function loadUsers() {
              nav('users'); 
              const tbody = document.getElementById('user-table-body');
-             tbody.innerHTML = '<div class="loader"></div> Memuat data...';
+             tbody.innerHTML = '<div class="p-8 text-center text-slate-400"><div class="loader mx-auto mb-2"></div> Memuat data...</div>';
              const res = await callAPI("get_users", {adminEmail:currentUser.email});
              if(res.status === 'success') {
                  tbody.innerHTML = res.users.map(u => `
-                    <div class="border-2 border-black p-3 flex justify-between items-center bg-slate-50 hover:bg-white transition group">
-                        <div>
-                            <div class="font-black text-lg">${u.nama}</div>
-                            <div class="text-xs text-slate-500 font-bold bg-yellow-200 inline-block px-1 mb-1">${u.role}</div>
-                            <div class="text-xs text-slate-400 font-mono">${u.email}</div>
-                            <div class="text-xs text-slate-500 mt-1"><i class="fas fa-phone"></i> ${u.noHp}</div>
+                    <div class="p-4 flex justify-between items-center hover:bg-slate-50 transition group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold">${u.nama.charAt(0)}</div>
+                            <div>
+                                <div class="font-bold text-slate-800">${u.nama}</div>
+                                <div class="text-xs text-slate-500">${u.email}</div>
+                                <div class="flex gap-2 mt-1">
+                                    <span class="text-[10px] font-bold bg-blue-50 text-blue-600 px-1.5 rounded border border-blue-100 uppercase">${u.role}</span>
+                                    <span class="text-[10px] font-bold text-slate-400"><i class="fas fa-phone"></i> ${u.noHp}</span>
+                                </div>
+                            </div>
                         </div>
                         <div class="text-right flex flex-col gap-2 items-end">
-                            <span class="${u.status==='Aktif'?'text-green-700 bg-green-100':'text-red-700 bg-red-100'} font-black text-xs px-2 py-1 rounded uppercase">${u.status}</span>
-                            ${(u.role !== 'Super Admin' && currentUser.email !== u.email) ? `<button onclick='openEditUserModal(${JSON.stringify(u)})' class="text-xs font-bold bg-blue-900 text-white px-3 py-1 hover:bg-blue-800 shadow-[2px_2px_0px_#000] active:shadow-none active:translate-y-[2px] transition-all"><i class="fas fa-edit"></i> EDIT</button>` : ''}
+                            <span class="${u.status==='Aktif'?'text-emerald-600':'text-red-500'} font-bold text-xs flex items-center gap-1"><i class="fas fa-circle text-[6px]"></i> ${u.status}</span>
+                            ${(u.role !== 'Super Admin' && currentUser.email !== u.email) ? 
+                                `<button onclick='openEditUserModal(${JSON.stringify(u)})' class="text-xs font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-1 rounded transition">Edit</button>` : ''
+                            }
                         </div>
                     </div>`).join('');
-             } else { tbody.innerHTML = `<div class="text-red-600 font-bold">Error: ${res.message}</div>`; }
+             } else { tbody.innerHTML = `<div class="p-4 text-red-500 font-bold text-center">Error: ${res.message}</div>`; }
         }
 
         function openEditUserModal(user) {
