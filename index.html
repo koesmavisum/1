@@ -210,7 +210,7 @@
                             <div class="bg-slate-50 p-4 border rounded-lg"><label class="block text-[10px] font-bold text-slate-500 uppercase mb-2">Dokumen SPVR (PDF)</label><input id="file-resume" type="file" class="w-full text-xs" accept="application/pdf" /></div>
                         </div>
                     </div>
-                    <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold shadow-lg hover:bg-blue-700 transition">SIMPAN DATA KE DATABASE</button>
+                    <button id="btn-submit-registrasi" type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold shadow-lg hover:bg-blue-700 transition">SIMPAN DATA KE DATABASE</button>
                 </form>
             </section>
 
@@ -459,6 +459,55 @@
                         </td>
                     </tr>`).join('');
                 }
+            }
+        }
+
+        // --- NURSE REGISTRATION LOGIC (FIXED) ---
+        async function handleFormAdmin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit-registrasi');
+            const originalText = btn.innerText;
+            btn.disabled = true; 
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> MENYIMPAN...';
+
+            // Gather Form Data
+            const formData = new FormData(e.target);
+            const payload = Object.fromEntries(formData.entries());
+
+            // Helper to send data
+            const sendData = async (finalPayload) => {
+                try {
+                    const res = await callAPI("save_visum_admin", { payload: finalPayload, userEmail: currentUser.email });
+                    if(res.status === 'success') {
+                        showToast("Registrasi Berhasil!", "success");
+                        e.target.reset(); // Reset form
+                        fetchNextRegNumber(); // Update No Reg Preview
+                    } else {
+                        showToast("Gagal: " + res.message, "error");
+                    }
+                } catch(err) {
+                    showToast("Koneksi Error", "error");
+                } finally {
+                    btn.disabled = false; 
+                    btn.innerText = originalText;
+                }
+            };
+
+            // Handle PDF File if exists
+            const fileInput = document.getElementById('file-resume');
+            if(fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = async function(evt) {
+                    // Extract base64 part only
+                    finalPayload = { ...payload };
+                    finalPayload.fileResumeData = evt.target.result.split(',')[1];
+                    finalPayload.fileResumeName = file.name;
+                    sendData(finalPayload);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                sendData(payload);
             }
         }
 
