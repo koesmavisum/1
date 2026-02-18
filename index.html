@@ -59,6 +59,13 @@
         /* Image Hover Overlay Effect */
         .img-zoom-container:hover .img-overlay { opacity: 1; }
         .img-overlay { transition: .3s ease; opacity: 0; background-color: rgba(0,0,0,0.3); }
+        
+        /* Timeline Styles */
+        .timeline-container { border-left: 2px solid #e2e8f0; margin-left: 10px; padding-left: 20px; position: relative; }
+        .timeline-item { margin-bottom: 25px; position: relative; }
+        .timeline-dot { width: 12px; height: 12px; background: #cbd5e1; border-radius: 50%; position: absolute; left: -27px; top: 5px; border: 2px solid white; box-shadow: 0 0 0 1px #e2e8f0; }
+        .timeline-dot.active { background: #3b82f6; box-shadow: 0 0 0 2px #dbeafe; }
+        .timeline-dot.completed { background: #10b981; box-shadow: 0 0 0 2px #d1fae5; }
     </style>
 </head>
 <body>
@@ -220,29 +227,50 @@
                 <div class="flex justify-between items-center mb-6">
                     <div class="flex items-center gap-4">
                         <button onclick="nav(currentUser.role === 'Dokter' ? 'dashboard' : 'search')" class="bg-white p-2 rounded border hover:bg-slate-100"><i class="fas fa-arrow-left"></i></button>
-                        <h2 class="text-2xl font-bold">Pemeriksaan Medis</h2>
+                        <h2 class="text-2xl font-bold">Rincian Pasien & Riwayat</h2>
                     </div>
                     <div id="view-status-badge"></div>
                 </div>
-                <div class="hc-card p-6 mb-8 bg-blue-50 border-blue-100 flex flex-wrap gap-10">
-                    <div><p class="text-[10px] font-bold text-blue-400 uppercase">Pasien</p><p class="text-xl font-bold" id="medis-nama-pasien">-</p></div>
-                    <div><p class="text-[10px] font-bold text-blue-400 uppercase">RM</p><p class="text-xl font-bold font-mono" id="medis-rm">-</p></div>
-                    <input type="hidden" id="medis-visum-id">
-                </div>
-                <div id="existing-photos-container" class="hidden mb-10">
-                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fas fa-images text-blue-500"></i> Dokumentasi Tersimpan</h3>
-                    <div id="existing-photos-loader" class="hidden py-10 text-center"><div class="loader mx-auto"></div></div>
-                    <div id="existing-photos-list" class="grid grid-cols-1 gap-6"></div>
-                </div>
-                <div id="new-photo-section" class="hc-card p-8 shadow-sm">
-                    <h3 class="text-lg font-bold mb-4">Input Hasil Visum & Foto</h3>
-                    <div class="border-2 border-dashed border-slate-200 rounded-xl p-10 text-center mb-6 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition" onclick="document.getElementById('file-foto-multi').click()">
-                        <i class="fas fa-camera text-4xl text-slate-300 mb-2"></i>
-                        <p class="text-slate-400 font-medium">Klik untuk pilih satu atau banyak foto luka</p>
-                        <input type="file" id="file-foto-multi" multiple accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Kolom Kiri: Detail Pasien & Foto -->
+                    <div class="lg:col-span-2 space-y-8">
+                        <div class="hc-card p-6 bg-blue-50 border-blue-100 flex flex-wrap gap-10">
+                            <div><p class="text-[10px] font-bold text-blue-400 uppercase">Pasien</p><p class="text-xl font-bold" id="medis-nama-pasien">-</p></div>
+                            <div><p class="text-[10px] font-bold text-blue-400 uppercase">RM</p><p class="text-xl font-bold font-mono" id="medis-rm">-</p></div>
+                            <input type="hidden" id="medis-visum-id">
+                        </div>
+
+                        <div id="existing-photos-container" class="hidden">
+                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fas fa-images text-blue-500"></i> Dokumentasi Tersimpan</h3>
+                            <div id="existing-photos-loader" class="hidden py-10 text-center"><div class="loader mx-auto"></div></div>
+                            <div id="existing-photos-list" class="grid grid-cols-1 gap-6"></div>
+                        </div>
+
+                        <div id="new-photo-section" class="hc-card p-8 shadow-sm">
+                            <h3 class="text-lg font-bold mb-4">Input Hasil Visum & Foto</h3>
+                            <div class="border-2 border-dashed border-slate-200 rounded-xl p-10 text-center mb-6 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition" onclick="document.getElementById('file-foto-multi').click()">
+                                <i class="fas fa-camera text-4xl text-slate-300 mb-2"></i>
+                                <p class="text-slate-400 font-medium">Klik untuk pilih satu atau banyak foto luka</p>
+                                <input type="file" id="file-foto-multi" multiple accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+                            </div>
+                            <div id="photo-input-container" class="space-y-4 mb-8"></div>
+                            <button id="btn-submit-medis" onclick="submitMedicalData()" class="w-full bg-emerald-600 text-white py-3 rounded-lg font-bold shadow-lg shadow-emerald-500/20 hover:bg-emerald-700 transition">SIMPAN HASIL KE ARSIP</button>
+                        </div>
                     </div>
-                    <div id="photo-input-container" class="space-y-4 mb-8"></div>
-                    <button id="btn-submit-medis" onclick="submitMedicalData()" class="w-full bg-emerald-600 text-white py-3 rounded-lg font-bold shadow-lg shadow-emerald-500/20 hover:bg-emerald-700 transition">SIMPAN HASIL KE ARSIP</button>
+
+                    <!-- Kolom Kanan: Timeline Riwayat -->
+                    <div class="lg:col-span-1">
+                        <div class="hc-card p-6 bg-white shadow-md sticky top-6">
+                            <h3 class="text-lg font-bold mb-6 flex items-center gap-2 border-b pb-3">
+                                <i class="fas fa-history text-slate-400"></i> Riwayat Proses
+                            </h3>
+                            <div id="history-timeline-container" class="timeline-container">
+                                <!-- Populated by JS -->
+                                <div class="text-slate-400 italic text-sm">Memuat data...</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -581,17 +609,20 @@
             const container = document.getElementById('existing-photos-container');
             const list = document.getElementById('existing-photos-list');
             const loader = document.getElementById('existing-photos-loader');
+            const historyContainer = document.getElementById('history-timeline-container');
             
             document.getElementById('medis-nama-pasien').innerText = "Loading...";
             list.innerHTML = '';
             container.classList.remove('hidden');
             loader.classList.remove('hidden');
+            historyContainer.innerHTML = '<div class="loader"></div>';
 
             const res = await callAPI("get_visum_details", { visumId: visumId });
             loader.classList.add('hidden');
             
             if(res.status === 'success') {
                 const data = res.data;
+                const h = data.history; // Shortcut for history object
                 currentVisumData = data;
                 
                 // Jika status sudah selesai, sembunyikan tombol simpan untuk dokter agar tidak duplikat (opsional, tapi good practice)
@@ -605,6 +636,40 @@
                 document.getElementById('medis-rm').innerText = data.rm;
                 document.getElementById('medis-visum-id').value = data.visumId;
                 
+                // --- RENDER TIMELINE ---
+                const fmtDate = (d) => d ? new Date(d).toLocaleString('id-ID', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}) : '-';
+                
+                const isSelesai = h.pemeriksaan.status === 'Selesai';
+                
+                historyContainer.innerHTML = `
+                    <div class="timeline-item">
+                        <div class="timeline-dot completed"></div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">${fmtDate(h.registrasi.tanggal)}</p>
+                        <h4 class="font-bold text-slate-800 text-sm">Registrasi SPVR</h4>
+                        <div class="mt-2 bg-slate-50 p-2 rounded border text-xs text-slate-600">
+                            <div><strong>No SPVR:</strong> ${h.spvr.nomor}</div>
+                            <div><strong>Instansi:</strong> ${h.spvr.instansi || '-'}</div>
+                            <div class="mt-1 pt-1 border-t border-slate-200 text-[10px]">Oleh: ${h.registrasi.oleh}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-dot ${isSelesai ? 'completed' : 'active'}"></div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">
+                            ${isSelesai ? fmtDate(h.pemeriksaan.tanggal) : 'Menunggu...'}
+                        </p>
+                        <h4 class="font-bold text-${isSelesai ? 'slate-800' : 'amber-600'} text-sm">
+                            ${isSelesai ? 'Pemeriksaan Selesai' : 'Dalam Antrian Dokter'}
+                        </h4>
+                        ${isSelesai ? `
+                        <div class="mt-2 bg-emerald-50 p-2 rounded border border-emerald-100 text-xs text-emerald-800">
+                            <div><strong>Dokter:</strong> ${h.pemeriksaan.dokter}</div>
+                            <div class="mt-1"><i class="fas fa-check-circle"></i> Hasil Disimpan</div>
+                        </div>` : ''}
+                    </div>
+                `;
+
+                // --- RENDER PHOTOS ---
                 const canEdit = (currentUser.role === 'Dokter' || currentUser.role === 'Super Admin');
 
                 if(res.photos.length > 0) {
