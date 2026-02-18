@@ -10,7 +10,7 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.11.1/tsparticles.bundle.min.js"></script>
-    <!-- SweetAlert2 Added Here -->
+    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -54,8 +54,11 @@
         .sort-asc::after { content: '\f0de'; opacity: 1; }
         .sort-desc::after { content: '\f0dd'; opacity: 1; }
         
-        /* SweetAlert Custom Font */
         .swal2-popup { font-family: 'Inter', sans-serif !important; }
+        
+        /* Image Hover Overlay Effect */
+        .img-zoom-container:hover .img-overlay { opacity: 1; }
+        .img-overlay { transition: .3s ease; opacity: 0; background-color: rgba(0,0,0,0.3); }
     </style>
 </head>
 <body>
@@ -609,8 +612,12 @@
                         const div = document.createElement('div');
                         div.className = "bg-white border rounded-2xl p-5 flex flex-col md:flex-row gap-6 shadow-sm";
                         div.innerHTML = `
-                            <div class='w-full md:w-48 aspect-video bg-slate-100 rounded-xl overflow-hidden border'>
-                                <img src='${p.url}' class='w-full h-full object-cover' onerror="this.src='https://placehold.co/400x300?text=Gambar+Gagal'">
+                            <div class='w-full md:w-48 aspect-video bg-slate-100 rounded-xl overflow-hidden border img-zoom-container relative cursor-pointer group' 
+                                 onclick="viewLargeImage('${p.url}', '${p.caption ? p.caption.replace(/'/g, "\\'") : ''}')">
+                                <img src='${p.url}' class='w-full h-full object-cover transition duration-300 group-hover:scale-110' onerror="this.src='https://placehold.co/400x300?text=Gambar+Gagal'">
+                                <div class="img-overlay absolute inset-0 flex items-center justify-center pointer-events-none">
+                                    <i class="fas fa-search-plus text-white text-3xl opacity-0 group-hover:opacity-100 transition duration-300"></i>
+                                </div>
                             </div>
                             <div class='flex-1'>
                                 <label class='block text-[10px] font-bold text-slate-400 uppercase mb-1'>Keterangan</label>
@@ -625,6 +632,21 @@
                     });
                 } else { list.innerHTML = '<p class="text-center text-slate-400 py-10 italic">Belum ada foto dokumentasi medis.</p>'; }
             }
+        }
+
+        // --- NEW FUNCTION: View Large Image Modal ---
+        function viewLargeImage(url, caption) {
+            Swal.fire({
+                imageUrl: url,
+                imageAlt: 'Foto Dokumentasi',
+                text: caption || 'Tidak ada keterangan',
+                width: 800,
+                confirmButtonText: 'Tutup',
+                showCloseButton: true,
+                customClass: {
+                    image: 'rounded-lg max-h-[85vh] object-contain'
+                }
+            });
         }
 
         // --- PENDING ACTION HANDLERS ---
@@ -707,7 +729,9 @@
             const container = document.getElementById('photo-input-container');
             container.innerHTML = selectedPhotos.map((p, i) => `
                 <div class="bg-white border rounded-xl p-4 flex gap-4 items-center">
-                    <div class="w-20 h-20 rounded-lg overflow-hidden border"><img src="${p.previewUrl}" class="w-full h-full object-cover"></div>
+                    <div class="w-20 h-20 rounded-lg overflow-hidden border cursor-pointer hover:opacity-80 transition" onclick="viewLargeImage('${p.previewUrl}', 'Preview Foto Baru')">
+                        <img src="${p.previewUrl}" class="w-full h-full object-cover">
+                    </div>
                     <div class="flex-1"><input type="text" oninput="selectedPhotos[${i}].caption=this.value" placeholder="Keterangan Medis (Luka lecet, memar, dsb)..." class="w-full bg-slate-50 border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-blue-100"></div>
                     <button onclick="selectedPhotos.splice(${i}, 1); renderPhotoInputs();" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
                 </div>`).join('');
