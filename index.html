@@ -10,6 +10,9 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.11.1/tsparticles.bundle.min.js"></script>
+    <!-- SweetAlert2 Added Here -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
@@ -50,6 +53,9 @@
         .sort-icon::after { content: '\f0dc'; font-family: 'Font Awesome 6 Free'; font-weight: 900; margin-left: 5px; opacity: 0.3; }
         .sort-asc::after { content: '\f0de'; opacity: 1; }
         .sort-desc::after { content: '\f0dd'; opacity: 1; }
+        
+        /* SweetAlert Custom Font */
+        .swal2-popup { font-family: 'Inter', sans-serif !important; }
     </style>
 </head>
 <body>
@@ -58,14 +64,6 @@
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxo08z_OLMe6KpKPJ3wOX6QKQ80YTweJfQfaP0plPQqauZKQ3qp1vIVKpToTIS7UVqy/exec"; 
         const GOOGLE_CLIENT_ID = "606872357226-63eva14elent817dpb55eb0o2savf4rt.apps.googleusercontent.com"; 
     </script>
-
-    <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="fixed top-5 right-5 z-50 transform translate-x-full transition-transform duration-300">
-        <div class="bg-white border-l-4 border-blue-600 p-4 flex items-center gap-3 shadow-2xl rounded-lg min-w-[300px]">
-            <i class="fas fa-info-circle text-blue-600 text-xl"></i>
-            <span id="toast-message" class="font-semibold text-slate-800">Pesan</span>
-        </div>
-    </div>
 
     <!-- 1. LOGIN VIEW -->
     <section id="login-view" class="h-screen flex items-center justify-center px-4 relative">
@@ -637,15 +635,59 @@
         }
 
         async function deletePhoto(photoId, fileId) {
-            if(!confirm("Hapus foto ini?")) return;
-            const res = await callAPI("delete_photo", { photoId: photoId, fileId: fileId, userEmail: currentUser.email });
-            if(res.status === 'success') loadVisumDetails(currentVisumData.visumId);
+            // Updated to use SweetAlert
+            const result = await Swal.fire({
+                title: 'Hapus Foto?',
+                text: "Foto yang dihapus tidak dapat dikembalikan.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, Hapus',
+                cancelButtonText: 'Batal'
+            });
+
+            if (result.isConfirmed) {
+                const res = await callAPI("delete_photo", { photoId: photoId, fileId: fileId, userEmail: currentUser.email });
+                if(res.status === 'success') {
+                    showToast("Foto berhasil dihapus", "success");
+                    loadVisumDetails(currentVisumData.visumId);
+                } else {
+                    showToast("Gagal menghapus foto", "error");
+                }
+            }
         }
 
         async function deleteVisum(visumId, patientName) {
-            if (!confirm(`HAPUS PERMANEN DATA: ${patientName}?\nTindakan ini tidak dapat dibatalkan.`)) return;
-            const res = await callAPI('delete_visum_data', { visumId: visumId, userEmail: currentUser.email });
-            if (res.status === 'success') { showToast("Data Dihapus", "success"); doSearch(); }
+            // Updated to use SweetAlert
+            const result = await Swal.fire({
+                title: 'Hapus Data Permanen?',
+                text: `Anda akan menghapus data pasien: ${patientName}. Tindakan ini tidak dapat dibatalkan!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            });
+
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Menghapus...',
+                    text: 'Mohon tunggu sebentar',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                }); 
+                
+                const res = await callAPI('delete_visum_data', { visumId: visumId, userEmail: currentUser.email });
+                
+                if (res.status === 'success') { 
+                    Swal.fire('Terhapus!', 'Data berhasil dihapus.', 'success');
+                    doSearch(); 
+                } else {
+                    Swal.fire('Gagal', res.message, 'error');
+                }
+            }
         }
 
         // --- FILE UPLOAD LOGIC ---
@@ -674,10 +716,30 @@
         async function submitMedicalData() {
             if(selectedPhotos.length === 0) return showToast("Wajib melampirkan minimal 1 foto.", "error");
             
-            if(!confirm("Apakah Anda yakin ingin menyimpan dan mengarsipkan data ini?\nData akan dipindahkan ke Arsip Visum.")) return;
+            // Updated to use SweetAlert
+            const result = await Swal.fire({
+                title: 'Simpan & Arsipkan?',
+                text: "Pastikan data medis sudah benar. Data akan dipindahkan ke Arsip Visum.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, Simpan',
+                cancelButtonText: 'Batal'
+            });
+
+            if (!result.isConfirmed) return;
 
             const btn = document.getElementById('btn-submit-medis'); btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Mengunggah & Mengarsipkan...';
             
+            // Show loading modal
+            Swal.fire({
+                title: 'Menyimpan Data Medis',
+                text: 'Sedang mengunggah foto dan memperbarui arsip...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
             const processed = await Promise.all(selectedPhotos.map(async (p) => {
                 const compressed = await compressImage(p.file);
                 return { data: compressed, mimeType: 'image/jpeg', caption: p.caption };
@@ -689,7 +751,14 @@
             });
 
             if(res.status === 'success') { 
-                showToast("Pemeriksaan Selesai. Data Diarsipkan.", "success"); 
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: 'Pemeriksaan Selesai. Data telah diarsipkan.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
                 selectedPhotos = []; 
                 
                 // Redirect ke Halaman Arsip Visum (Search) untuk melihat hasilnya
@@ -697,9 +766,9 @@
                    nav('search'); // Pindah ke tab Arsip
                    document.getElementById('search-input').value = ""; // Clear search
                    doSearch(); // Load data (akan muncul di list arsip)
-                }, 1000);
+                }, 2000);
             } else {
-                showToast("Gagal menyimpan: " + res.message, "error");
+                Swal.fire('Gagal', res.message, 'error');
                 btn.disabled = false; btn.innerHTML = "SIMPAN HASIL KE ARSIP";
             }
         }
@@ -795,11 +864,32 @@
             catch (e) { return { status: "error", message: "Koneksi Gagal" }; } 
         }
 
+        // --- SWEETALERT TOAST REPLACEMENT ---
+        // Initialize SweetAlert Mixin for Toasts
+        const Toast = Swal.mixin({
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+          }
+        });
+
         function showToast(m, t) { 
-            const el = document.getElementById('toast'); 
-            document.getElementById('toast-message').innerText = m; 
-            el.classList.remove('translate-x-full'); 
-            setTimeout(() => el.classList.add('translate-x-full'), 3000); 
+            // Map old 'type' ('success', 'error', 'info') to SweetAlert icons
+            // If type is not one of standard swal icons, default to 'info'
+            let icon = 'info';
+            if(['success', 'error', 'warning', 'info', 'question'].includes(t)) {
+                icon = t;
+            }
+            
+            Toast.fire({
+                icon: icon,
+                title: m
+            });
         }
 
         function populateDoctors(l) { 
